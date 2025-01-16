@@ -1,0 +1,46 @@
+services:
+  app:
+    build:
+      context: ./symfony
+      dockerfile: Dockerfile
+    container_name: symfony_app
+    working_dir: /var/www/symfony
+    volumes:
+      - ./symfony:/var/www/symfony
+      - ./symfony/.env:/var/www/symfony/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "mysql://symfony:symfony@db:3306/symfony"
+#    entrypoint: ["/usr/local/bin/docker-entrypoint.sh"]
+
+  websocket:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+    container_name: websocket_servers
+    volumes:
+      - ./websocket:/var/www/html
+    ports:
+      - "6001:6001"
+#    command: npm start
+    depends_on:
+      - app
+
+  db:
+    image: mysql:8.0
+    container_name: symfony_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: symfony
+      MYSQL_USER: symfony
+      MYSQL_PASSWORD: symfony
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+volumes:
+  db_data:
