@@ -31,10 +31,6 @@ services:
   # Symfony application
   app:
     image: websocket-symfony-app
-#    build:
-#      context: ./symfony
-#      dockerfile: Dockerfile
-    # container_name: app
     working_dir: /var/www/symfony
     volumes:
       - ./symfony:/var/www/symfony
@@ -160,7 +156,7 @@ services:
 networks:
   symfony_net:
     # В Swarm будет overlay, в обычном Compose – bridge
-    driver: ${NETWORK_DRIVER}
+    driver: overlay
 
 volumes:
   db_primary_data:

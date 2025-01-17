@@ -3,7 +3,7 @@ FROM php:8.4-fpm
 # Установка зависимостей
 RUN apt-get update && apt-get install -y \
     git unzip libpq-dev libzip-dev zip \
-    && docker-php-ext-install pdo pdo_mysql
+    && docker-php-ext-install pdo pdo_pgsql
 
 RUN apt-get update && apt-get install -y acl
 
