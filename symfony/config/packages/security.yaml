@@ -1,0 +1,34 @@
+security:
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        # Пример firewall'а для анонимных запросов (регистрация, логин и т.д.)
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        # Firewall, который защищает API (JWT)
+        api:
+            pattern:   ^/api
+            stateless: true
+            anonymous: true
+            provider:  app_user_provider
+            json_login:
+                check_path: /api/login_check
+                username_path: email
+                password_path: password
+            logout: false
+            # LexikJWTAuthenticationBundle listener
+            lexik_jwt:
+                # Либо укажите настройки, если требуются
+                authorization_header:
+                    enabled: true
+                    prefix:  Bearer
+
+    access_control:
+#        - { path: ^/api/login_check, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api,           roles: IS_AUTHENTICATED_FULLY }
