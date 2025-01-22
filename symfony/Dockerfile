@@ -19,7 +19,6 @@ RUN apt-get update && apt-get install -y \
 
 # Install PHP extensions
 RUN docker-php-ext-install \
-    pdo_mysql \
     pdo_pgsql \
     mbstring \
     exif \
@@ -28,7 +27,7 @@ RUN docker-php-ext-install \
     intl \
     opcache \
     && pecl install amqp \
-    && docker-php-ext-enable amqp
+    && docker-php-ext-enable amqp 
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

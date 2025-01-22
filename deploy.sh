@@ -36,4 +36,4 @@ docker compose run --rm app php bin/console cache:warmup --env=prod
 docker compose run --rm app php bin/console doctrine:migrations:migrate --no-interaction --env=prod
 
 # Запуск новых контейнеров
-docker compose -f docker-compose.yaml -f compose.prod.yaml up -d --build
+docker compose -f compose.yaml -f docker-compose.prod.yaml up -d --build
