@@ -40,7 +40,7 @@ services:
       APP_ENV: "${APP_ENV:-prod}"
       # DB_PASSWORD и APP_SECRET подтягиваем через entrypoint-скрипт или аналог
       # Здесь пример, как мы используем уже сконструированный URL:
-      DATABASE_URL: "postgresql://symfony:${DB_PASSWORD}@db-primary:5432/symfony"
+      DATABASE_URL: "postgresql://${DB_USER}:${POSTGRES_PASSWORD}@${DB_NAME}:5432/symfony"
       APP_SECRET: "${APP_SECRET}"
     secrets:
       - db_password
@@ -69,10 +69,10 @@ services:
     image: postgres:17.2
     # container_name: db_primary
     environment:
-      POSTGRES_USER: symfony
+      POSTGRES_USER: ${DB_USER}
       # Вместо POSTGRES_PASSWORD используем POSTGRES_PASSWORD_FILE, чтобы читать из секрет-файла
       POSTGRES_PASSWORD_FILE: "/run/secrets/db_password"
-      POSTGRES_DB: symfony
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - db_primary_data:/var/lib/postgresql/data
     networks:

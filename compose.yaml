@@ -83,7 +83,7 @@ services:
     command: >
       postgres -c 'wal_level=logical' -c 'hot_standby=on'
     environment:
-      POSTGRES_USER: symfony
+      POSTGRES_USER: ${DB_USER}
 #      POSTGRES_PASSWORD_FILE: "/run/secrets/db_password"
     volumes:
       - db_replica_data:/var/lib/postgresql/data

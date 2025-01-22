@@ -8,11 +8,11 @@ mkdir -p secrets
 
 # Создаем файлы с секретами если их нет
 if [ ! -f secrets/db_password.txt ]; then
-    echo "your_secure_db_password" > secrets/db_password.txt
+    echo "$POSTGRES_PASSWORD" > secrets/db_password.txt
 fi
 
 if [ ! -f secrets/rabbitmq_password.txt ]; then
-    echo "your_secure_rabbitmq_password" > secrets/rabbitmq_password.txt
+    echo "$RABBITMQ_PASSWORD" > secrets/rabbitmq_password.txt
 fi
 
 # Pull последних изменений из git
@@ -29,7 +29,8 @@ docker compose run --rm app php bin/console cache:warmup --env=prod
 docker compose run --rm app php bin/console doctrine:migrations:migrate --no-interaction --env=prod
 
 # Запуск новых контейнеров
-docker compose -f compose.yaml -f docker-compose.prod.yaml up -d --build
+#docker compose -f compose.yaml -f docker-compose.prod.yaml up -d --build
+docker compose -f compose.yaml up -d --build
 
 # Проверяем наличие необходимых переменных окружения
 if [ -z "$DOMAIN" ]; then
