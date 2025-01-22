@@ -146,7 +146,7 @@ services:
       - .env
     environment:
       - RABBITMQ_DEFAULT_USER=user
-      - RABBITMQ_DEFAULT_PASS=password
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
     ports:
       - "5672:5672"   # AMQP protocol port
       - "15672:15672" # Management UI
