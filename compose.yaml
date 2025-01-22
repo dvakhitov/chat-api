@@ -38,7 +38,7 @@ services:
       - symfony/.env.local
     environment:
       APP_ENV: "${APP_ENV:-prod}"
-      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@db-primary:5432/${DB_NAME}"
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME}"
       APP_SECRET: "${APP_SECRET}"
       MESSENGER_TRANSPORT_DSN: "${MESSENGER_TRANSPORT_DSN}"
     networks:
