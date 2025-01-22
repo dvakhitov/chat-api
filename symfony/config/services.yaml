@@ -4,6 +4,10 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    websocket.url: '%env(WEBSOCKET_URL)%'
+    jwt_public_key: '%kernel.project_dir%/config/jwt/public.pem'
+    jwt_private_key: '%kernel.project_dir%/config/jwt/private.pem'
+    jwt_secret_key: '%env(JWT_SECRET_KEY)%'
 
 services:
     # default configuration for services in *this* file
@@ -20,5 +24,17 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    # # add more service definitions when explicit configuration is needed
+    # # please note that last definitions always *replace* previous ones
+
+    # App\Controller\Api\AuthController:
+    #     arguments:
+    #         $publicKeyPath: '%jwt_public_key%'
+    #         $privateKeyPath: '%jwt_private_key%'
+    #         $secretKey: '%jwt_secret_key%'
+
+    App\Security\JWT:
+        arguments:
+            $publicKeyPath: '%jwt_public_key%'
+            $privateKeyPath: '%jwt_private_key%'
+            $secretKey: '%jwt_secret_key%'

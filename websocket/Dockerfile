@@ -1,17 +1,22 @@
-FROM node:18
+FROM node:18-alpine
+
+# Устанавливаем wget для healthcheck
+RUN apk add --no-cache wget
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем package.json и устанавливаем зависимости
-COPY package.json ./
+# Копируем package.json и package-lock.json
+COPY package*.json ./
+
+# Устанавливаем зависимости
 RUN npm install
 
-# Копируем остальные файлы проекта
+# Копируем исходный код
 COPY . .
 
-# Открываем порт для WebSocket
+# Открываем порт
 EXPOSE 6001
 
-# Устанавливаем команду запуска
+# Запускаем сервер
 CMD ["node", "server.js"]

@@ -1,25 +1,77 @@
 FROM php:8.4-fpm
 
-# Установка зависимостей
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git unzip libpq-dev libzip-dev zip \
-    && docker-php-ext-install pdo pdo_pgsql
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    librabbitmq-dev \
+    libssl-dev \
+    supervisor \
+    libpq-dev \
+    netcat-traditional \
+    libicu-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y acl
+# Install PHP extensions
+RUN docker-php-ext-install \
+    pdo_mysql \
+    pdo_pgsql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    intl \
+    opcache
 
-# Установка Composer
+# Install AMQP extension
+RUN pecl install amqp && \
+    docker-php-ext-enable amqp
+
+# Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Установка Symfony CLI
-RUN curl -sS https://get.symfony.com/cli/installer | bash
-RUN mv /root/.symfony*/bin/symfony /usr/local/bin/symfony
+# Set working directory
+WORKDIR /var/www
 
-WORKDIR /var/www/symfony
+# Copy supervisor configuration
+COPY docker/supervisor/messenger-worker.conf /etc/supervisor/conf.d/
+COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/
+COPY docker/php/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
-# Установка прав для разработки
-RUN usermod -u 1000 www-data && chown -R www-data:www-data /var/www && chmod -R gu+rxw ./
+# Set correct permissions
+RUN chmod 644 /etc/supervisor/conf.d/supervisord.conf \
+    && chmod 644 /etc/supervisor/conf.d/messenger-worker.conf \
+    && chmod 644 /usr/local/etc/php-fpm.d/www.conf
 
-USER www-data
+# Create necessary directories and set permissions
+RUN mkdir -p /var/log/supervisor \
+    && mkdir -p /var/run \
+    && chmod 777 /var/run
 
-# Команда по умолчанию
-CMD ["php-fpm"]
+# Copy entrypoint script
+COPY docker/entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Copy existing application directory contents
+COPY . /var/www
+
+# Create public directory if it doesn't exist
+RUN mkdir -p /var/www/symfony/public
+
+# Install dependencies
+RUN composer install
+
+# Change ownership of our applications
+RUN chown -R www-data:www-data /var/www
+
+# Expose port 9000
+EXPOSE 9000
+
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
