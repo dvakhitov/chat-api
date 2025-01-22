@@ -34,9 +34,9 @@ services:
       - symfony/.env.local
     environment:
       APP_ENV: "${APP_ENV:-prod}"
-      DATABASE_URL: "postgresql://symfony:${DB_PASSWORD}@db-primary:5432/symfony"
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@${DB_NAME}:5432/symfony"
       APP_SECRET: "${APP_SECRET}"
-      MESSENGER_TRANSPORT_DSN: "amqp://user:password@rabbitmq:5672/%2f/messages"
+      MESSENGER_TRANSPORT_DSN: "${MESSENGER_TRANSPORT_DSN}"
     networks:
       - symfony_net
     healthcheck:
@@ -56,10 +56,10 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_USER: symfony
+      POSTGRES_USER: ${DB_USER}
       # Вместо POSTGRES_PASSWORD используем POSTGRES_PASSWORD_FILE, чтобы читать из секрет-файла
 #      POSTGRES_PASSWORD_FILE: "/run/secrets/db_password"
-      POSTGRES_DB: symfony
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - db_primary_data:/var/lib/postgresql/data
     networks:
