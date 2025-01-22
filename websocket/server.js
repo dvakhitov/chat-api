@@ -4,6 +4,7 @@ const http = require('http');
 
 // Конфигурация
 const PORT = process.env.WS_PORT || 6001;
+const DOMAIN = process.env.DOMAIN || 'localhost';
 const SYMFONY_SERVER = process.env.SYMFONY_SERVER || 'http://nginx:80';
 const AUTH_TIMEOUT = 10000; // 10 секунд на аутентификацию
 const MAX_RETRIES = 5;
@@ -68,7 +69,7 @@ async function waitForNginx() {
 // Ждем готовности nginx перед запуском сервера
 waitForNginx().then(() => {
     httpServer.listen(PORT);
-    console.log(`WebSocket server is running on ws://localhost:${PORT}`);
+    console.log(`WebSocket server is running on ws://${DOMAIN}:${PORT}`);
 });
 
 // Обработка входящих сообщений во время аутентификации

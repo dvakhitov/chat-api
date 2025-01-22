@@ -14,7 +14,7 @@ services:
       - symfony_net
 
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost" ]
+      test: [ "CMD", "curl", "-f", "http://${DOMAIN}" ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -176,7 +176,7 @@ services:
           cpus: "0.50"
           memory: 512M
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:6001/health"]
+      test: ["CMD", "wget", "-qO-", "http://${DOMAIN}:6001/health"]
       interval: 30s
       timeout: 5s
       retries: 3
