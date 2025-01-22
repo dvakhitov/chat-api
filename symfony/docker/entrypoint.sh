@@ -8,6 +8,7 @@ until nc -z rabbitmq 5672; do
 done
 
 # Ensure correct permissions
+mkdir -p /var/www/symfony/var
 chown -R www-data:www-data /var/www/symfony/var
 
 

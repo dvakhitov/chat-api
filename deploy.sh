@@ -6,13 +6,6 @@ docker compose down
 # Создаем директорию для секретов если её нет
 mkdir -p secrets
 
-# Проверяем наличие необходимых переменных окружения
-if [ -z "$DOMAIN" ]; then
-    echo "Error: DOMAIN environment variable is not set"
-    echo "Usage: DOMAIN=example.com ./deploy.sh"
-    exit 1
-fi
-
 # Создаем файлы с секретами если их нет
 if [ ! -f secrets/db_password.txt ]; then
     echo "your_secure_db_password" > secrets/db_password.txt
@@ -37,3 +30,10 @@ docker compose run --rm app php bin/console doctrine:migrations:migrate --no-int
 
 # Запуск новых контейнеров
 docker compose -f compose.yaml -f docker-compose.prod.yaml up -d --build
+
+# Проверяем наличие необходимых переменных окружения
+if [ -z "$DOMAIN" ]; then
+    echo "Error: DOMAIN environment variable is not set"
+    echo "Usage: DOMAIN=example.com ./deploy.sh"
+    exit 1
+fi
