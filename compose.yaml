@@ -2,6 +2,10 @@ services:
   # Nginx as load balancer
   nginx:
     image: nginx:1.27.3-alpine
+    env_file:
+      - .env
+    environment:
+      - DOMAIN_NAME=${DOMAIN:-localhost}
     # container_name: nginx  # Убрали, чтобы не мешать масштабированию
     depends_on:
       - app
