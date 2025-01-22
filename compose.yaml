@@ -29,6 +29,9 @@ services:
       - ./symfony/docker/php/php-fpm.conf:/usr/local/etc/php-fpm.d/www.conf:ro
     expose:
       - "9000"  # Важно для PHP-FPM
+    env_file:
+      - .env
+      - symfony/.env.local
     environment:
       APP_ENV: "${APP_ENV:-prod}"
       DATABASE_URL: "postgresql://symfony:${DB_PASSWORD}@db-primary:5432/symfony"
@@ -50,6 +53,8 @@ services:
   db-primary:
     image: postgres:17.2
     # container_name: db_primary
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: symfony
       # Вместо POSTGRES_PASSWORD используем POSTGRES_PASSWORD_FILE, чтобы читать из секрет-файла
@@ -82,6 +87,8 @@ services:
       - db-primary
     command: >
       postgres -c 'wal_level=logical' -c 'hot_standby=on'
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${DB_USER}
 #      POSTGRES_PASSWORD_FILE: "/run/secrets/db_password"
@@ -109,6 +116,8 @@ services:
     image: redis:7.4
     # container_name: redis
     # Оставим порты, если нужно подключаться извне для теста:
+    env_file:
+      - .env
     ports:
       - "6378:6379"
     command: [ "redis-server", "--save", "60", "1", "--loglevel", "warning" ]
@@ -133,6 +142,8 @@ services:
 
   rabbitmq:
     image: rabbitmq:3.12-management
+    env_file:
+      - .env
     environment:
       - RABBITMQ_DEFAULT_USER=user
       - RABBITMQ_DEFAULT_PASS=password
@@ -154,6 +165,8 @@ services:
     build:
       context: ./websocket
       dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
       - WS_PORT=6001
       - SYMFONY_SERVER=http://nginx:80
