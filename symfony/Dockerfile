@@ -26,11 +26,9 @@ RUN docker-php-ext-install \
     pcntl \
     bcmath \
     intl \
-    opcache
-
-# Install AMQP extension
-RUN pecl install amqp && \
-    docker-php-ext-enable amqp
+    opcache \
+    && pecl install amqp \
+    && docker-php-ext-enable amqp
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

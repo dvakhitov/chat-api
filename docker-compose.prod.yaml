@@ -17,6 +17,8 @@ services:
       - APP_ENV=prod
       - APP_DEBUG=0
       - MESSENGER_TRANSPORT_DSN=amqp://user:${RABBITMQ_PASSWORD}@rabbitmq:5672/%2f/messages
+      - DOMAIN=${DOMAIN}
+      - WEBSOCKET_URL=wss://${DOMAIN}/ws
       
   db-primary:
     restart: unless-stopped
