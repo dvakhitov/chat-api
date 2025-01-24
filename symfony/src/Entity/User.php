@@ -6,7 +6,6 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -33,9 +32,6 @@ class User
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photoUrl = null;
 
-    #[ORM\Column(type: 'uuid', unique: true)]
-    private ?Uuid $chatUserUuid = null;
-
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -48,27 +44,18 @@ class User
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: ChatPartner::class)]
     private Collection $chatPartners;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $isEmailVerified = null;
+
     public function __construct()
     {
         $this->messages = new ArrayCollection();
         $this->chatPartners = new ArrayCollection();
-        $this->chatUserUuid = Uuid::v4();
     }
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getChatUserUuid(): ?string
-    {
-        return $this->chatUserUuid?->toRfc4122();
-    }
-
-    public function setChatUserUuid(?Uuid $uuid): self
-    {
-        $this->chatUserUuid = $uuid;
-        return $this;
     }
 
     public function getFirstName(): ?string
@@ -172,5 +159,17 @@ class User
     public function setUpdatedAtValue(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function isEmailVerified(): ?bool
+    {
+        return $this->isEmailVerified;
+    }
+
+    public function setIsEmailVerified(?bool $isEmailVerified): static
+    {
+        $this->isEmailVerified = $isEmailVerified;
+
+        return $this;
     }
 }

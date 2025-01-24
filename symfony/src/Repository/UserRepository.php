@@ -21,4 +21,16 @@ class UserRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['chatUserUuid' => Uuid::fromString($uuid)]);
     }
+
+    public function findByIds(array $ids)
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->andWhere('u.id IN (:ids)')
+            ->setParameter('ids', $ids);
+
+        // Отладочная информация
+        $query = $qb->getQuery();
+
+        return $query->getResult();
+    }
 }

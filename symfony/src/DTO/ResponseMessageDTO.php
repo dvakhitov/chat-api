@@ -25,7 +25,7 @@ namespace App\DTO;
   "numberUnreadMessages": 0,
   "numberUnreadTimeStamp": 1705495800
  * } */
-class MessageDTO
+class ResponseMessageDTO
 {
 
 }

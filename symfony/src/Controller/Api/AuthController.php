@@ -36,34 +36,30 @@ class AuthController extends AbstractController
         try {
             $payload = $this->jwt->validate($token);
 
-            // Используем username как email
-            $user = $this->userRepository->findOneBy(['email' => $payload['username']]);
+            $user = $this->userRepository->find($payload['user_id']);
 
-
-            try {
                 if (!($user instanceof User)) {
-                    // Создаем нового пользователя
                     $user = new User();
-                    $user->setEmail($payload['username']);
-                    $user->setFirstName($payload['firstname'] ?? $payload['username']);
-                    $user->setLastName($payload['lastname'] ?? $payload['username']);
+                    $user->setEmail($payload['email']);
 
-                    $user->setChatUserUuid(Uuid::v4());
+                    $user->setFirstName($payload['firstname'] ?? $payload['firstName']);
+                    $user->setLastName($payload['lastname'] ?? $payload['lastName']);
+                    $user->setPhotoUrl($payload['photoUrl']);
 
                     $this->entityManager->persist($user);
 
                     $this->entityManager->flush();
                 }
-            } catch (\Throwable $exception) {
-                dd($exception);
-            }
 
             return $this->json([
                 'connected' => true,
+                'email' => $user->getEmail(),
+                'userId' => $user->getId(),
                 'countNotifications' => 2, // TODO: Получать реальное количество уведомлений
                 'countChats' => 0 // TODO: Получать реальное количество чатов
             ]);
         } catch (\Exception $e) {
+            dd($e);
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
         }
     }

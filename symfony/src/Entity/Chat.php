@@ -17,15 +17,15 @@ class Chat
     private ?int $id = null;
 
     #[ORM\Column(length: 20)]
-    private string $type = 'private'; // 'private' или 'group'
+    private string $type = 'private';
 
     #[ORM\ManyToOne(targetEntity: Message::class)]
     private ?Message $lastMessage = null;
 
-    #[ORM\OneToMany(mappedBy: 'chat', targetEntity: Message::class)]
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'chat')]
     private Collection $messages;
 
-    #[ORM\OneToMany(mappedBy: 'chat', targetEntity: ChatPartner::class)]
+    #[ORM\OneToMany(targetEntity: ChatPartner::class, mappedBy: 'chat')]
     private Collection $chatPartners;
 
     #[ORM\Column]
@@ -86,9 +86,11 @@ class Chat
         return $this->chatPartners;
     }
 
-    public function setChatPartners(Collection $chatPartners): Chat
+    public function setChatPartners(array $chatPartners): Chat
     {
-        $this->chatPartners = $chatPartners;
+        foreach ($chatPartners as $chatPartner) {
+            $this->chatPartners->add($chatPartner);
+        }
 
         return $this;
     }

@@ -38,3 +38,11 @@ services:
             $publicKeyPath: '%jwt_public_key%'
             $privateKeyPath: '%jwt_private_key%'
             $secretKey: '%jwt_secret_key%'
+
+    App\Service\WebSocket\WebSocketClient:
+        arguments:
+            $wsUrl: 'http://websocket:3001'
+            $serializer: '@serializer'
+
+    App\Service\MessageHandler\ChatMessageHandler: ~
+    App\Service\MessageHandler\PrivateMessageHandler: ~

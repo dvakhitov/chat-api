@@ -13,5 +13,4 @@ class MessageRepository extends ServiceEntityRepository
         parent::__construct($registry, Message::class);
     }
 
-    // Здесь можно добавлять свои методы для работы с сущностью Message
 }

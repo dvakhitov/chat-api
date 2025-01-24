@@ -34,6 +34,9 @@ class Message
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column]
+    private ?int $returnUniqId = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -44,9 +47,11 @@ class Message
         return $this->chat;
     }
 
-    public function setChat(?Chat $chat): void
+    public function setChat(?Chat $chat): static
     {
         $this->chat = $chat;
+
+        return $this;
     }
 
     public function getSender(): ?User
@@ -54,9 +59,11 @@ class Message
         return $this->sender;
     }
 
-    public function setSender(?User $sender): void
+    public function setSender(?User $sender): static
     {
         $this->sender = $sender;
+
+        return $this;
     }
 
     public function getContent(): ?string
@@ -64,9 +71,11 @@ class Message
         return $this->content;
     }
 
-    public function setContent(?string $content): void
+    public function setContent(?string $content): static
     {
         $this->content = $content;
+
+        return $this;
     }
 
     public function isRead(): bool
@@ -74,9 +83,11 @@ class Message
         return $this->isRead;
     }
 
-    public function setIsRead(bool $isRead): void
+    public function setIsRead(bool $isRead): static
     {
         $this->isRead = $isRead;
+
+        return $this;
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable
@@ -84,9 +95,11 @@ class Message
         return $this->createdAt;
     }
 
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): void
+    public function setCreatedAt(?\DateTimeImmutable $createdAt)
     {
         $this->createdAt = $createdAt;
+
+        return $this;
     }
 
     public function getUpdatedAt(): ?\DateTimeImmutable
@@ -94,9 +107,11 @@ class Message
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): void
+    public function setUpdatedAt(?\DateTimeImmutable $updatedAt)
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 
     #[ORM\PrePersist]
@@ -110,5 +125,17 @@ class Message
     public function setUpdatedAtValue(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function getReturnUniqId(): ?int
+    {
+        return $this->returnUniqId;
+    }
+
+    public function setReturnUniqId(int $returnUniqId): static
+    {
+        $this->returnUniqId = $returnUniqId;
+
+        return $this;
     }
 } 

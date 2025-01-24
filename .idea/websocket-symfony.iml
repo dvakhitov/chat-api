@@ -96,6 +96,8 @@
       <excludeFolder url="file://$MODULE_DIR$/symfony/vendor/psr/clock" />
       <excludeFolder url="file://$MODULE_DIR$/symfony/vendor/symfony/amqp-messenger" />
       <excludeFolder url="file://$MODULE_DIR$/symfony/vendor/symfony/clock" />
+      <excludeFolder url="file://$MODULE_DIR$/symfony/vendor/symfony/http-client" />
+      <excludeFolder url="file://$MODULE_DIR$/symfony/vendor/symfony/http-client-contracts" />
       <excludeFolder url="file://$MODULE_DIR$/symfony/vendor/symfony/messenger" />
       <excludeFolder url="file://$MODULE_DIR$/symfony/vendor/symfony/security-bundle" />
       <excludeFolder url="file://$MODULE_DIR$/symfony/vendor/symfony/security-csrf" />
