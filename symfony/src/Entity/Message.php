@@ -34,8 +34,8 @@ class Message
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\Column]
-    private ?int $returnUniqId = null;
+    #[ORM\Column(type: 'bigint', nullable: true)]
+    private ?string $returnUniqId = '';
 
     public function getId(): ?int
     {
@@ -127,12 +127,12 @@ class Message
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function getReturnUniqId(): ?int
+    public function getReturnUniqId(): ?string
     {
         return $this->returnUniqId;
     }
 
-    public function setReturnUniqId(int $returnUniqId): static
+    public function setReturnUniqId(string $returnUniqId): static
     {
         $this->returnUniqId = $returnUniqId;
 

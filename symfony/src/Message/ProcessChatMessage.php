@@ -8,7 +8,8 @@ class ProcessChatMessage
 {
     public function __construct(
         private ProcessMessageDTO $messageData
-    ) {}
+    ) {
+    }
 
     public function getMessageData(): ProcessMessageDTO
     {

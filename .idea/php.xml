@@ -109,6 +109,8 @@
       <path value="$PROJECT_DIR$/symfony/vendor/symfony/security-csrf" />
       <path value="$PROJECT_DIR$/symfony/vendor/symfony/amqp-messenger" />
       <path value="$PROJECT_DIR$/symfony/vendor/symfony/web-profiler-bundle" />
+      <path value="$PROJECT_DIR$/symfony/vendor/symfony/http-client-contracts" />
+      <path value="$PROJECT_DIR$/symfony/vendor/symfony/http-client" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.4" />

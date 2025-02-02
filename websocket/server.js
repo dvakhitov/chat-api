@@ -1,11 +1,8 @@
 const WebSocketServer = require('./src/WebSocketServer');
+const config = require('./config');
 
-const config = {
-    port: process.env.WS_PORT || 6001,
-    domain: process.env.DOMAIN || 'localhost',
-    symfonyServer: process.env.SYMFONY_SERVER || 'http://nginx:80',
-    authTimeout: 10000
-};
-
+console.log('Starting server');
 const server = new WebSocketServer(config);
+
+// Убедитесь, что строки ниже отсутствуют или закомментированы
 server.start().catch(console.error);

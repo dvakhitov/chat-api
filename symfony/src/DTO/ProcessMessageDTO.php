@@ -2,12 +2,14 @@
 
 namespace App\DTO;
 
-use App\Entity\User;
-
 class ProcessMessageDTO
 {
+    public ?int $recipient = null;
+    public ?string $senderName = null;
+
     public int $returnUniqId {
         get => $this->returnUniqId;
+
         set {
             $this->returnUniqId = $value;
         }

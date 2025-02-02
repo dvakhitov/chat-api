@@ -2,21 +2,25 @@
 
 namespace App\Service;
 
-use App\DTO\MessageHandlerResultDTO;
+use App\DTO\NotificationMessage\AbstractNotificationMessageDTO;
+use App\DTO\NotificationMessage\RecipientNotificationMessageDTO;
 use App\DTO\NotificationMessage\SenderNotificationMessageDTO;
+use App\Message\NotificationMessage;
 use App\DTO\ProcessMessageDTO;
+use App\Message\SenderNotificationMessage;
 use App\Service\MessageHandler\ChatMessageHandler;
 use App\Service\MessageHandler\SystemMessageHandler;
-use App\Service\WebSocket\WebSocketClient;
+use App\Service\MessageHandler\MessageHandlerInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class MessageProcessor
 {
     private array $handlers;
 
     public function __construct(
-        private readonly WebSocketClient $wsClient,
         private readonly LoggerInterface $logger,
+        private readonly MessageBusInterface $messageBus,
         ChatMessageHandler $chatHandler,
         SystemMessageHandler $systemMessageHandler
     ) {
@@ -33,22 +37,20 @@ class MessageProcessor
             $type = $messageData->type ?? 'unknown';
 
             if (!isset($this->handlers[$type])) {
-                throw new \InvalidArgumentException("Unknown message type: $type");
+                throw new \InvalidArgumentException("Handler for message type '{$type}' not found");
             }
 
-            /** @var MessageHandlerResultDTO $result */
-            $result = $this->handlers[$type]->handle($messageData);
+            /** @var MessageHandlerInterface $handler */
+            $handler = $this->handlers[$type];
 
-            foreach ($result->notifications as $message) {
-                if ($message instanceof SenderNotificationMessageDTO) {
-                    $this->wsClient->send(
-                        $message, $messageData->sender);
-                }
+            $result = $handler->handle($messageData);
+
+            $partnersIds = $this->getPartnersIds($result->notifications);
+            foreach ($result->notifications as $item) {
+                $message =new NotificationMessage($item, $this->getSenderId($partnersIds, $item));
+                $this->messageBus->dispatch($message);
             }
-//            // Отправляем результат через WebSocket
-//            if (isset($messageData['recipient'])) {
-//                $this->wsClient->send($result, $messageData['recipient']);
-//            }
+
 
         } catch (\Throwable $e) {
             dd($e);
@@ -56,12 +58,33 @@ class MessageProcessor
                 'exception' => $e,
                 'messageData' => $messageData
             ]);
-
-            // Отправляем сообщение об ошибке
-            $this->wsClient->send([
-                'type' => 'error',
-                'message' => 'Error processing message'
-            ], $messageData['sender']);
+            // Обработка ошибки
         }
+    }
+
+    /**
+     * @param RecipientNotificationMessageDTO[] $result
+     * @return array
+     */
+    private function getPartnersIds(array $result): array
+    {
+        $ids = [];
+        foreach ($result as $item) {
+            $ids[] =$item->chatPartner->userId;
+        }
+
+        return $ids;
+    }
+
+    private function getSenderId(array $partnersIds, AbstractNotificationMessageDTO $notification): int
+    {
+        foreach ($partnersIds as $partnersId) {
+            if ($notification->chatPartner->userId !== $partnersId) {
+                return $partnersId;
+            }
+        }
+
+        throw new \RuntimeException('Sender not found: ' . __METHOD__);
+
     }
 } 

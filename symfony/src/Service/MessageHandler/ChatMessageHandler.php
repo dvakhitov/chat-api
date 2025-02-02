@@ -29,7 +29,7 @@ class ChatMessageHandler implements MessageHandlerInterface
 
         $sender = $this->getSender($chat, $messageData->sender);
         if (!$sender instanceof User) {
-            throw new \RuntimeException('User is not valid');
+            throw new \RuntimeException(sprintf('User is not valid for sender.', self::class, __METHOD__));
         }
 
         $message = new Message()
@@ -43,6 +43,8 @@ class ChatMessageHandler implements MessageHandlerInterface
         $this->entityManager->flush();
 
         $resultDto = new MessageHandlerResultDTO();
+        $resultDto->messageId = $message->getId();
+        $resultDto->chatId = $chat->getId();
         $resultDto->notifications = $this->createNotifications($chat, $messageData->sender, $messageData->returnUniqId);
 
         return $resultDto;
@@ -54,6 +56,10 @@ class ChatMessageHandler implements MessageHandlerInterface
             [$messageData->sender, $messageData->chatPartnerId]
         );
 
+    
+        if (count($users) < 2) {
+            throw new \RuntimeException('User is not valid!');
+        }
         return $this->entityManager->getRepository(Chat::class)->findOrCreatePrivateChat($users[0], $users[1]);
     }
 
@@ -69,30 +75,38 @@ class ChatMessageHandler implements MessageHandlerInterface
         return null;
     }
 
-    private function createNotifications(Chat $chat, int $senderId, int $returnUniqId): array
+    private function createNotifications(Chat $chat, int $messageSenderId, int $returnUniqId): array
     {
         $notifications = [];
 
         foreach ($chat->getChatPartners() as $chatPartner) {
-            if ($chatPartner->getUser()->getId() === $senderId) {
+            if ($chatPartner->getUser()->getId() !== $messageSenderId) {
+                $notificationRecipient = $chatPartner;
+                /**
+                 * Тут создаём уведомление для отправителя, о том, что сообщение отправлено получателю.
+                 */
                 $notification = new SenderNotificationMessageDTO();
                 $notification->returnUniqId = $returnUniqId;
                 // Найдем партнера чата для отправителя
                 foreach ($chat->getChatPartners() as $partner) {
-                    if ($partner->getUser()->getId() !== $senderId) {
-                        $notification->chatPartner = $this->createChatPartnerDTO($partner);
+                    if ($partner->getUser()->getId() !== $messageSenderId) {
+                        $notificationSender = $partner;
+                        $notification->chatPartner = $this->createChatPartnerDTO($notificationSender);
                         break;
                     }
                 }
 
-                $notifications[] = $this->fillNotification($notification, $chatPartner);
+                $notifications[] = $this->fillNotification($notification, $notificationRecipient);
                 continue;
             }
 
+            /**
+             * Здесь создаем уведомление для получателя, что ему пришло сообщение.
+             */
             $notification = new RecipientNotificationMessageDTO();
             // Найдем отправителя для получателя
             foreach ($chat->getChatPartners() as $partner) {
-                if ($partner->getUser()->getId() === $senderId) {
+                if ($partner->getUser()->getId() !== $messageSenderId) {
                     $notification->chatPartner = $this->createChatPartnerDTO($partner);
                     break;
                 }

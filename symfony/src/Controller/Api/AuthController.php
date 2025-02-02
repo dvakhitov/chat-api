@@ -25,6 +25,8 @@ class AuthController extends AbstractController
     #[Route('/validate-token', name: 'api_auth_validate_token', methods: ['POST'])]
     public function validateToken(Request $request): Response
     {
+        file_put_contents('php://stdout', "validateToken called\n");
+
         $token = $request->headers->get('Authorization');
 
         if (!$token || !str_starts_with($token, 'Bearer ')) {
@@ -38,18 +40,17 @@ class AuthController extends AbstractController
 
             $user = $this->userRepository->find($payload['user_id']);
 
-                if (!($user instanceof User)) {
-                    $user = new User();
-                    $user->setEmail($payload['email']);
+            if (!($user instanceof User)) {
+                $user = new User();
+                $user->setId($payload['user_id']);
+                $user->setEmail($payload['email']);
+                $user->setFirstName($payload['firstname'] ?? $payload['firstName'] ?? '');
+                $user->setLastName($payload['lastname'] ?? $payload['lastName'] ?? '');
+                $user->setPhotoUrl($payload['photoUrl'] ?? '');
 
-                    $user->setFirstName($payload['firstname'] ?? $payload['firstName']);
-                    $user->setLastName($payload['lastname'] ?? $payload['lastName']);
-                    $user->setPhotoUrl($payload['photoUrl']);
-
-                    $this->entityManager->persist($user);
-
-                    $this->entityManager->flush();
-                }
+                $this->entityManager->persist($user);
+                $this->entityManager->flush();
+            }
 
             return $this->json([
                 'connected' => true,
@@ -59,7 +60,6 @@ class AuthController extends AbstractController
                 'countChats' => 0 // TODO: Получать реальное количество чатов
             ]);
         } catch (\Exception $e) {
-            dd($e);
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
         }
     }

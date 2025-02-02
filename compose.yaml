@@ -42,6 +42,12 @@ services:
       APP_SECRET: "${APP_SECRET}"
       MESSENGER_TRANSPORT_DSN: "${MESSENGER_TRANSPORT_DSN}"
       APP_DEBUG: "${APP_DEBUG:-true}"
+      RABBITMQ_USER: "${RABBITMQ_USER}"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      RABBITMQ_HOST: "${RABBITMQ_HOST}"
+      RABBITMQ_PORT: "${RABBITMQ_PORT}"
+      RABBITMQ_VHOST: "${RABBITMQ_VHOST}"
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     networks:
       - symfony_net
     healthcheck:
@@ -65,6 +71,8 @@ services:
       # Вместо POSTGRES_PASSWORD используем POSTGRES_PASSWORD_FILE, чтобы читать из секрет-файла
 #      POSTGRES_PASSWORD_FILE: "/run/secrets/db_password"
       POSTGRES_DB: ${DB_NAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
     volumes:
       - db_primary_data:/var/lib/postgresql/data
     networks:
@@ -97,6 +105,8 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER}
 #      POSTGRES_PASSWORD_FILE: "/run/secrets/db_password"
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - db_replica_data:/var/lib/postgresql/data
     networks:
@@ -175,6 +185,11 @@ services:
     environment:
       - WS_PORT=6001
       - SYMFONY_SERVER=http://nginx:80
+      - RABBITMQ_USER=user
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_VHOST=/
     ports:
       - "6001:6001"
     networks:
@@ -183,6 +198,8 @@ services:
       nginx:
         condition: service_started
       app:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     deploy:
       mode: replicated

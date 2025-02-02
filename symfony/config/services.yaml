@@ -8,12 +8,15 @@ parameters:
     jwt_public_key: '%kernel.project_dir%/config/jwt/public.pem'
     jwt_private_key: '%kernel.project_dir%/config/jwt/private.pem'
     jwt_secret_key: '%env(JWT_SECRET_KEY)%'
+    webSocketUrl: 'http://websocket:3001'
 
 services:
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+            string $webSocketUrl: '%webSocketUrl%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

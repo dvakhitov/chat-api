@@ -6,34 +6,35 @@ class MessageHandler {
         this.clientManager = clientManager;
     }
 
-    async handleAuthenticatedMessage(clientId, token, data) {
+    async handleAuthenticatedMessage(clientId, token, data, ws) {
         const message = JSON.parse(data);
-        const response = await this.sendToChatApp(message, clientId, token);
+        const response = await this.sendToChatApp(message, clientId, token, ws);
         return response;
     }
 
-    async sendToChatApp(message, senderId, token) {
+    async sendToChatApp(message, senderId, token, ws) {
         try {
-            const response = await axios.post(`${this.symfonyServer}/api/messages`, {
-                type: message.type,
-                sender: senderId,
-                userId: this.clientManager.getAuthenticatedClientByWs(message.ws).userId,
-                recipient: message.to || 'all',
-                message: message.text,
-                timestamp: new Date().toISOString()
-            }, {
+            const clientInfo = this.clientManager.getClientByWs(ws);
+            if (!clientInfo) {
+                throw new Error('Client not authenticated');
+            }
+
+            message.senderId = clientInfo.userId;
+
+            console.log('Sending message to chat app:', message);
+            const response = await axios.post(`${this.symfonyServer}/api/messages`, message, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
 
-            if (response.status !== 202) {
+            if (response.status !== 202 && response.status !== 200) {
                 throw new Error('Chat app server error');
             }
 
             return response.data;
         } catch (error) {
-            console.error('Error sending message to chat app:', error);
+            console.error('Error sending message to chat app:', error.response ? error.response.data : error.message);
             throw error;
         }
     }

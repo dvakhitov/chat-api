@@ -4,7 +4,7 @@ namespace App\DTO;
 
 use Symfony\Component\Serializer\Annotation\Groups;
 
-class ChatPartnerDTO
+class MessageDTO
 {
     /**
      * @Groups({"websocket"})
@@ -14,17 +14,7 @@ class ChatPartnerDTO
     /**
      * @Groups({"websocket"})
      */
-    public string $email;
-
-    /**
-     * @Groups({"websocket"})
-     */
-    public ?string $firstName;
-
-    /**
-     * @Groups({"websocket"})
-     */
-    public ?string $lastName;
+    public int $senderId;
 
     /**
      * @Groups({"websocket"})
@@ -34,5 +24,15 @@ class ChatPartnerDTO
     /**
      * @Groups({"websocket"})
      */
-    public bool $emailVerified;
+    public ?\DateTimeInterface $updatedDate = null;
+
+    /**
+     * @Groups({"websocket"})
+     */
+    public string $content;
+
+    /**
+     * @Groups({"websocket"})
+     */
+    public bool $isRead;
 } 

@@ -19,27 +19,23 @@ class AuthService {
     }
 
     async validateToken(token) {
+        console.log('validateToken called with token:', token);
         try {
-            const response = await axios.post(
-                `${this.symfonyServer}/api/auth/validate-token`,
-                {},
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+            console.log('Token validation start');
+            const response = await axios.post(`${this.symfonyServer}/api/auth/validate-token`, {}, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
-            );
+            });
 
-            return {
-                success: response.status === 200,
-                clientId: response.data.chatUserUuid,
-                email: response.data.email,
-                userId: response.data.userId,
-                data: response.data
-            };
+            console.log('Token validation response:', response.status, response.data);
+
+            // Возвращаем ответ от сервиса приложения как есть
+            return response.data;
         } catch (error) {
-            console.error('Token validation error:', error.response?.data || error.message);
-            return { success: false };
+            console.error('Token validation error:', error.response ? error.response.data : error.message);
+            // Выбрасываем ошибку для обработки выше
+            throw error;
         }
     }
 }

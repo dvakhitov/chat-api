@@ -28,9 +28,17 @@ class UserRepository extends ServiceEntityRepository
             ->andWhere('u.id IN (:ids)')
             ->setParameter('ids', $ids);
 
-        // Отладочная информация
+
         $query = $qb->getQuery();
 
         return $query->getResult();
+    }
+
+    public function findByIdAndEmail(int $id, string $email): ?User
+    {
+        return $this->findOneBy([
+            'id' => $id,
+            'email' => $email
+        ]);
     }
 }

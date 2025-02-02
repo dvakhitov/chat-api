@@ -1,13 +1,16 @@
 class ClientManager {
     constructor() {
-        this.pendingClients = new Map();
-        this.authenticatedClients = new Map();
-        this.emailToClientId = new Map();
-        this.userIdToClientId = new Map();
+        this.clients = new Map(); // userId -> WebSocket
+        this.pendingClients = new Map(); // connectionId -> WebSocket
+    }
+
+    addClient(userId, ws) {
+        this.clients.set(userId.toString(), ws);
+        console.log(`Client added with userId: ${userId.toString()}`);
     }
 
     addPendingClient(connectionId, ws) {
-        this.pendingClients.set(connectionId, { ws, connectedAt: Date.now() });
+        this.pendingClients.set(connectionId, ws);
     }
 
     removePendingClient(connectionId) {
@@ -18,46 +21,52 @@ class ClientManager {
         return this.pendingClients.has(connectionId);
     }
 
-    authenticateClient(connectionId, ws, clientId, token, email, userId) {
-        this.authenticatedClients.set(clientId, { 
-            ws, 
-            token,
-            email,
-            userId,
-            connectionId 
-        });
-        this.emailToClientId.set(email, clientId);
-        this.userIdToClientId.set(userId, clientId);
-        this.removePendingClient(connectionId);
+    authenticateClient(connectionId, ws, userId, token) {
+        this.pendingClients.delete(connectionId);
+        ws.userId = userId.toString();
+        ws.token = token;
+        this.clients.set(ws.userId, ws);
+        console.log(`Client authenticated: User ID ${ws.userId}`);
     }
 
-    removeAuthenticatedClient(ws) {
-        for (const [clientId, client] of this.authenticatedClients.entries()) {
-            if (client.ws === ws) {
-                this.emailToClientId.delete(client.email);
-                this.userIdToClientId.delete(client.userId);
-                this.authenticatedClients.delete(clientId);
-                break;
-            }
-        }
+    removeClient(userId) {
+        this.clients.delete(userId.toString());
+        console.log(`Client removed with userId: ${userId.toString()}`);
     }
 
-    getClientIdByEmail(email) {
-        return this.emailToClientId.get(email);
-    }
-
-    getAuthenticatedClientByWs(ws) {
-        for (const [clientId, client] of this.authenticatedClients.entries()) {
-            if (client.ws === ws) {
-                return { id: clientId, ...client };
+    getClientByWs(ws) {
+        for (const [userId, clientWs] of this.clients.entries()) {
+            if (clientWs === ws) {
+                return { userId, ws: clientWs };
             }
         }
         return null;
     }
 
-    getClientIdByUserId(userId) {
-        return this.userIdToClientId.get(userId);
+    getClient(userId) {
+        console.log(`Attempting to get client with userId: ${userId.toString()}`);
+        return this.clients.get(userId.toString());
+    }
+
+    isClientAuthenticated(ws) {
+        return ws.userId && this.clients.has(ws.userId);
+    }
+
+    getAuthenticatedClientByWs(ws) {
+        for (const [userId, clientWs] of this.clients.entries()) {
+            if (clientWs === ws) {
+                return {
+                    userId: userId,
+                    token: ws.token // Если нужно, можете добавить другие данные
+                };
+            }
+        }
+        return null;
+    }
+
+    getConnectedClients() {
+        return Array.from(this.clients.keys());
     }
 }
 
-module.exports = ClientManager; 
+module.exports = ClientManager;

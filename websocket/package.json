@@ -9,6 +9,8 @@
   "dependencies": {
     "ws": "^8.13.0",
     "axios": "^1.6.2",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "amqplib": "^0.10.3",
+    "express": "^4.19.2"
   }
 }
