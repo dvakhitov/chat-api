@@ -28,14 +28,14 @@ class Message
     #[ORM\Column]
     private bool $isRead = false;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetimetz_immutable', nullable: true)]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column]
-    private ?\DateTimeImmutable $updatedAt = null;
+    #[ORM\Column(type: 'datetimetz', nullable: true)]
+    private ?\DateTime $updatedAt = null;
 
     #[ORM\Column(type: 'bigint', nullable: true)]
-    private ?string $returnUniqId = '';
+    private ?string $localId = '';
 
     public function getId(): ?int
     {
@@ -102,40 +102,39 @@ class Message
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTime
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt)
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
-    }
 
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
     {
         $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTime();
     }
 
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTime();
     }
 
-    public function getReturnUniqId(): ?string
+    public function getLocalId(): ?string
     {
-        return $this->returnUniqId;
+        return $this->localId;
     }
 
-    public function setReturnUniqId(string $returnUniqId): static
+    public function setLocalId(string $localId): static
     {
-        $this->returnUniqId = $returnUniqId;
+        $this->localId = $localId;
 
         return $this;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->isRead ? 'read' : 'sent';
     }
 } 

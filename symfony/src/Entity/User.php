@@ -32,16 +32,16 @@ class User
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photoUrl = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetimetz_immutable', nullable: true)]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\OneToMany(mappedBy: 'sender', targetEntity: Message::class)]
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender')]
     private Collection $messages;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ChatPartner::class)]
+    #[ORM\OneToMany(targetEntity: ChatPartner::class, mappedBy: 'user')]
     private Collection $chatPartners;
 
     #[ORM\Column(nullable: true)]
@@ -176,5 +176,10 @@ class User
         $this->isEmailVerified = $isEmailVerified;
 
         return $this;
+    }
+
+    public function getIsEmailVerified(): ?bool
+    {
+        return $this->isEmailVerified;
     }
 }

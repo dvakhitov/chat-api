@@ -2,11 +2,9 @@
 
 namespace App\Service;
 
+use App\DTO\ChatMessageDtoInterface;
 use App\DTO\NotificationMessage\AbstractNotificationMessageDTO;
-use App\DTO\NotificationMessage\RecipientNotificationMessageDTO;
-use App\DTO\NotificationMessage\SenderNotificationMessageDTO;
 use App\Message\NotificationMessage;
-use App\DTO\ProcessMessageDTO;
 use App\Message\SenderNotificationMessage;
 use App\Service\MessageHandler\ChatMessageHandler;
 use App\Service\MessageHandler\SystemMessageHandler;
@@ -31,7 +29,7 @@ class MessageProcessor
         ];
     }
 
-    public function process(ProcessMessageDTO $messageData): void
+    public function process(ChatMessageDtoInterface $messageData): void
     {
         try {
             $type = $messageData->type ?? 'unknown';
@@ -47,12 +45,11 @@ class MessageProcessor
 
             $partnersIds = $this->getPartnersIds($result->notifications);
             foreach ($result->notifications as $item) {
-                $message =new NotificationMessage($item, $this->getSenderId($partnersIds, $item));
+                $message = new NotificationMessage($item, $this->getSenderId($partnersIds, $item));
                 $this->messageBus->dispatch($message);
             }
-
-
         } catch (\Throwable $e) {
+
             dd($e);
             $this->logger->error('Error processing message: ' . $e->getMessage(), [
                 'exception' => $e,
@@ -63,14 +60,14 @@ class MessageProcessor
     }
 
     /**
-     * @param RecipientNotificationMessageDTO[] $result
+     * @param AbstractNotificationMessageDTO[] $result
      * @return array
      */
     private function getPartnersIds(array $result): array
     {
         $ids = [];
         foreach ($result as $item) {
-            $ids[] =$item->chatPartner->userId;
+            $ids[] = $item->chatPartner->userId;
         }
 
         return $ids;
@@ -85,6 +82,5 @@ class MessageProcessor
         }
 
         throw new \RuntimeException('Sender not found: ' . __METHOD__);
-
     }
 } 

@@ -2,8 +2,10 @@
 
 namespace App\DTO;
 
-class ProcessMessageDTO
+class ChatMessageContentDTO implements ChatMessageDtoInterface
 {
+    use ChatPartnerId;
+
     public ?int $recipient = null;
     public ?string $senderName = null;
 
@@ -26,13 +28,6 @@ class ProcessMessageDTO
         get => $this->type;
         set {
             $this->type = $value;
-        }
-    }
-
-    public int $chatPartnerId {
-        get => $this->chatPartnerId;
-        set {
-            $this->chatPartnerId = $value;
         }
     }
 

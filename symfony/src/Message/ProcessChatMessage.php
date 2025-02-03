@@ -2,16 +2,16 @@
 
 namespace App\Message;
 
-use App\DTO\ProcessMessageDTO;
+use App\DTO\ChatMessageDtoInterface;
 
 class ProcessChatMessage
 {
     public function __construct(
-        private ProcessMessageDTO $messageData
+        private ChatMessageDtoInterface $messageData
     ) {
     }
 
-    public function getMessageData(): ProcessMessageDTO
+    public function getMessageData(): ChatMessageDtoInterface
     {
         return $this->messageData;
     }

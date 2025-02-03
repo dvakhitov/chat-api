@@ -3,27 +3,31 @@
 namespace App\Service\MessageHandler;
 
 use App\DTO\MessageHandlerResultDTO;
+use App\DTO\ChatMessageDtoInterface;
 use App\DTO\NotificationMessage\AbstractNotificationMessageDTO;
 use App\DTO\NotificationMessage\RecipientNotificationMessageDTO;
 use App\DTO\NotificationMessage\SenderNotificationMessageDTO;
-use App\DTO\ProcessMessageDTO;
 use App\Entity\Chat;
 use App\Entity\ChatPartner;
 use App\Entity\Message;
 use App\Entity\User;
+use App\Factory\ChatPartnerDTOFactory;
+use App\Factory\NotificationMessageDTOFactory;
 use App\Repository\ChatRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\DTO\ChatPartnerDTO;
+use PhpParser\Node\Stmt\Catch_;
 
 class ChatMessageHandler implements MessageHandlerInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ChatRepository $chatRepository,
+        private NotificationMessageDTOFactory $notificationMessageDTOFactory
     ) {
     }
 
-    public function handle(ProcessMessageDTO $messageData): MessageHandlerResultDTO
+    public function handle(ChatMessageDtoInterface $messageData): MessageHandlerResultDTO
     {
         $chat = $this->getChat($messageData);
 
@@ -37,7 +41,7 @@ class ChatMessageHandler implements MessageHandlerInterface
             ->setContent($messageData->content)
             ->setSender($sender)
             ->setCreatedAt(new \DateTimeImmutable())
-            ->setReturnUniqId($messageData->returnUniqId);
+            ->setLocalId($messageData->returnUniqId);
 
         $this->entityManager->persist($message);
         $this->entityManager->flush();
@@ -50,13 +54,13 @@ class ChatMessageHandler implements MessageHandlerInterface
         return $resultDto;
     }
 
-    private function getChat(ProcessMessageDTO $messageData)
+    private function getChat(ChatMessageDtoInterface $messageData)
     {
         $users = $this->entityManager->getRepository(User::class)->findByIds(
             [$messageData->sender, $messageData->chatPartnerId]
         );
 
-    
+
         if (count($users) < 2) {
             throw new \RuntimeException('User is not valid!');
         }
@@ -85,59 +89,32 @@ class ChatMessageHandler implements MessageHandlerInterface
                 /**
                  * Тут создаём уведомление для отправителя, о том, что сообщение отправлено получателю.
                  */
-                $notification = new SenderNotificationMessageDTO();
-                $notification->returnUniqId = $returnUniqId;
-                // Найдем партнера чата для отправителя
-                foreach ($chat->getChatPartners() as $partner) {
-                    if ($partner->getUser()->getId() !== $messageSenderId) {
-                        $notificationSender = $partner;
-                        $notification->chatPartner = $this->createChatPartnerDTO($notificationSender);
-                        break;
-                    }
-                }
+                $notification = $this
+                    ->notificationMessageDTOFactory
+                    ->createSenderNotification(
+                        $chatPartner->getChat(),
+                        $notificationRecipient->getUser()->getId(),
+                        $returnUniqId
+                    );
 
-                $notifications[] = $this->fillNotification($notification, $notificationRecipient);
+                $notification->returnUniqId = $returnUniqId;
+
+                $notifications[] = $notification;
+
                 continue;
             }
 
             /**
              * Здесь создаем уведомление для получателя, что ему пришло сообщение.
              */
-            $notification = new RecipientNotificationMessageDTO();
-            // Найдем отправителя для получателя
-            foreach ($chat->getChatPartners() as $partner) {
-                if ($partner->getUser()->getId() !== $messageSenderId) {
-                    $notification->chatPartner = $this->createChatPartnerDTO($partner);
-                    break;
-                }
-            }
-            $notifications[] = $this->fillNotification($notification, $chatPartner);
+            $notifications[] = $this
+                ->notificationMessageDTOFactory
+                ->createRecipientNotification(
+                    $chatPartner->getChat(),
+                    $messageSenderId
+                );
         }
 
         return $notifications;
-    }
-
-    private function fillNotification(
-        AbstractNotificationMessageDTO $notification,
-        ChatPartner $chatPartner
-    ): AbstractNotificationMessageDTO {
-        $notification->type = 'message';
-        $notification->chatPartner = $this->createChatPartnerDTO($chatPartner);
-        $notification->numberUnreadMessages = $this->chatRepository->getUnreadMessagesChats($chatPartner);
-
-        return $notification;
-    }
-
-    private function createChatPartnerDTO(ChatPartner $chatPartner): ChatPartnerDTO
-    {
-        $dto = new ChatPartnerDTO();
-        $dto->id = $chatPartner->getId();
-        $dto->userId = $chatPartner->getUser()->getId();
-        $dto->userEmail = $chatPartner->getUser()->getEmail();
-        $dto->userFirstName = $chatPartner->getUser()->getFirstName();
-        $dto->userLastName = $chatPartner->getUser()->getLastName();
-        $dto->userPhotoUrl = $chatPartner->getUser()->getPhotoUrl();
-
-        return $dto;
     }
 }

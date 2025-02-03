@@ -3,9 +3,9 @@
 namespace App\Service\MessageHandler;
 
 use App\DTO\MessageHandlerResultDTO;
-use App\DTO\ProcessMessageDTO;
+use App\DTO\ChatMessageDtoInterface;
 
 interface MessageHandlerInterface
 {
-    public function handle(ProcessMessageDTO $messageData): MessageHandlerResultDTO;
+    public function handle(ChatMessageDtoInterface $messageData): MessageHandlerResultDTO;
 } 

@@ -2,12 +2,12 @@
 
 namespace App\Service\MessageHandler;
 
+use App\DTO\ChatMessageDtoInterface;
 use App\DTO\MessageHandlerResultDTO;
-use App\DTO\ProcessMessageDTO;
 
 class SystemMessageHandler implements MessageHandlerInterface
 {
-    public function handle(ProcessMessageDTO $messageData): MessageHandlerResultDTO
+    public function handle(ChatMessageDtoInterface $messageData): MessageHandlerResultDTO
     {
         // Здесь логика обработки личных сообщений
         return new MessageHandlerResultDTO(); //todo: доработать создание
