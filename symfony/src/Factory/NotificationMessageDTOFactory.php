@@ -17,20 +17,20 @@ readonly class NotificationMessageDTOFactory
 
     public function createSenderNotification(
         Chat $chat,
-        int $messageSenderId,
-        int $returnUniqId
+        int $messageSenderId
     ): SenderNotificationMessageDTO {
         /** @var SenderNotificationMessageDTO $dto */
-        $dto = $this->createNotification(SenderNotificationMessageDTO::class, $chat, $messageSenderId,  $returnUniqId);
+        $dto = $this->createNotification(SenderNotificationMessageDTO::class, $chat, $messageSenderId);
 
         return $dto;
     }
 
     public function createRecipientNotification(
         Chat $chat,
-        int $messageSenderId
+        int $messageSenderId,
+        int $returnUniqId
     ): RecipientNotificationMessageDTO | AbstractNotificationMessageDTO {
-        return $this->createNotification(RecipientNotificationMessageDTO::class, $chat, $messageSenderId);
+        return $this->createNotification(RecipientNotificationMessageDTO::class, $chat, $messageSenderId, $returnUniqId);
     }
 
     private function createNotification(

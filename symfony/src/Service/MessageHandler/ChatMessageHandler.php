@@ -4,19 +4,13 @@ namespace App\Service\MessageHandler;
 
 use App\DTO\MessageHandlerResultDTO;
 use App\DTO\ChatMessageDtoInterface;
-use App\DTO\NotificationMessage\AbstractNotificationMessageDTO;
-use App\DTO\NotificationMessage\RecipientNotificationMessageDTO;
-use App\DTO\NotificationMessage\SenderNotificationMessageDTO;
 use App\Entity\Chat;
 use App\Entity\ChatPartner;
 use App\Entity\Message;
 use App\Entity\User;
-use App\Factory\ChatPartnerDTOFactory;
 use App\Factory\NotificationMessageDTOFactory;
 use App\Repository\ChatRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use App\DTO\ChatPartnerDTO;
-use PhpParser\Node\Stmt\Catch_;
 
 class ChatMessageHandler implements MessageHandlerInterface
 {
@@ -93,11 +87,8 @@ class ChatMessageHandler implements MessageHandlerInterface
                     ->notificationMessageDTOFactory
                     ->createSenderNotification(
                         $chatPartner->getChat(),
-                        $notificationRecipient->getUser()->getId(),
-                        $returnUniqId
+                        $notificationRecipient->getUser()->getId()
                     );
-
-                $notification->returnUniqId = $returnUniqId;
 
                 $notifications[] = $notification;
 
@@ -111,7 +102,8 @@ class ChatMessageHandler implements MessageHandlerInterface
                 ->notificationMessageDTOFactory
                 ->createRecipientNotification(
                     $chatPartner->getChat(),
-                    $messageSenderId
+                    $messageSenderId,
+                    $returnUniqId
                 );
         }
 

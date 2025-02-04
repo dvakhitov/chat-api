@@ -3,6 +3,7 @@ const http = require('http');
 const ClientManager = require('./ClientManager');
 const MessageHandler = require('./MessageHandler');
 const AuthService = require('./services/AuthService');
+const tenMinutes = 600000;
 
 class WebSocketServer {
     constructor(config) {
@@ -37,7 +38,7 @@ class WebSocketServer {
                 ws.close(4001, 'Authentication timeout');
                 this.clientManager.removePendingClient(connectionId);
             }
-        }, this.config.authTimeout || 600000); // 600000 мс = 10 минут
+        }, this.config.authTimeout || tenMinutes); 
 
         ws.on('message', async (data) => {
             console.log('Received data:', data);
@@ -165,41 +166,22 @@ class WebSocketServer {
         app.post('/send', (req, res) => {
             const { recipient, data, type } = req.body;
             console.log(`Received send request to recipient: ${recipient}`);
-            console.log('Received type:', type);
-            console.log('Received data:', data);
-            console.log('Type of data:', typeof data);
 
+            // Получаем список подключенных клиентов
             const connectedClients = this.clientManager.getConnectedClients();
             console.log('Connected clients:', connectedClients);
 
+            // Получаем сокет клиента по userId
             const ws = this.clientManager.getClient(recipient);
 
             if (ws) {
-                let parsedData;
-
-                if (typeof data === 'string') {
-                    try {
-                        parsedData = JSON.parse(data);
-                        console.log('Parsed data:', parsedData);
-                    } catch (e) {
-                        console.error('Failed to parse data:', e);
-                        res.status(400).json({ error: 'Invalid data format' });
-                        return;
-                    }
-                } else if (typeof data === 'object' && data !== null) {
-                    parsedData = data;
-                } else {
-                    console.error('Data is invalid:', data);
-                    res.status(400).json({ error: 'Invalid data format' });
-                    return;
-                }
-
+                // Если необходимо обрезать сообщение и убрать 'data', то объединяем 'type' и 'data' в один объект
                 const messageToSend = {
                     type,
-                    ...parsedData
+                    ...data // Распаковываем поля из 'data' на верхний уровень
                 };
-                console.log('Message to send:', messageToSend);
 
+                // Отправляем сообщение клиенту
                 ws.send(JSON.stringify(messageToSend));
 
                 res.json({ status: 'sent' });

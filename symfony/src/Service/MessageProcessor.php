@@ -4,8 +4,8 @@ namespace App\Service;
 
 use App\DTO\ChatMessageDtoInterface;
 use App\DTO\NotificationMessage\AbstractNotificationMessageDTO;
+use App\Event\NotificationSentEvent;
 use App\Message\NotificationMessage;
-use App\Message\SenderNotificationMessage;
 use App\Service\MessageHandler\ChatMessageHandler;
 use App\Service\MessageHandler\SystemMessageHandler;
 use App\Service\MessageHandler\MessageHandlerInterface;
@@ -48,9 +48,8 @@ class MessageProcessor
                 $message = new NotificationMessage($item, $this->getSenderId($partnersIds, $item));
                 $this->messageBus->dispatch($message);
             }
+            $event = new NotificationSentEvent(5, );
         } catch (\Throwable $e) {
-
-            dd($e);
             $this->logger->error('Error processing message: ' . $e->getMessage(), [
                 'exception' => $e,
                 'messageData' => $messageData
