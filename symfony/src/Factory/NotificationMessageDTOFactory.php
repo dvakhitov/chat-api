@@ -63,12 +63,12 @@ readonly class NotificationMessageDTOFactory
         $actualChatPartner = null;
 
         foreach ($chat->getChatPartners() as $chatPartner) {
-            if ($chatPartner->getUser()->getId() === $chatPartnerDTO->userId) {
+            if ($chatPartner->getUser()->getId() !== $chatPartnerDTO->userId) {
                 $actualChatPartner = $chatPartner;
             }
         }
 
-        return $this->chatRepository->getUnreadMessagesChats($actualChatPartner);
+        return $this->chatRepository->getCountUnreadMessagesByChatPartner($actualChatPartner->getId(), $chat->getId());
     }
 
 }

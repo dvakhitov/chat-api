@@ -2,24 +2,37 @@
 
 namespace App\MessageHandler;
 
+use App\DTO\NotificationMessage\RecipientNotificationMessageDTO;
+use App\Event\NotificationsSentEvent;
 use App\Message\NotificationMessage;
 use App\Service\WebSocketService;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
-use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 #[AsMessageHandler]
-class NotificationMessageHandler
+readonly class NotificationMessageHandler
 {
     public function __construct(
         private WebSocketService $webSocketService,
-        private SerializerInterface $serializer
+        private EventDispatcherInterface $dispatcher,
+        private LoggerInterface $logger,
     ) {
     }
 
     public function __invoke(NotificationMessage $message)
     {
-
         $this->webSocketService->send($this->objectsToArray($message->data), $message->senderId);
+
+        if ($message->data instanceof RecipientNotificationMessageDTO) {
+            $recipientId = $message->data->chatPartner->userId;
+            if (!$recipientId) {
+                $this->logger->error(
+                    sprintf('$recipientId is mandatory. %s', __METHOD__)
+                );
+            }
+            $this->sendCountChats($recipientId);
+        }
     }
 
     private function objectsToArray(mixed $data): array
@@ -34,7 +47,6 @@ class NotificationMessageHandler
 
                 $result[$key] = $value;
             }
-
         } catch (\Throwable $th) {
             dd($data, $th);
         }
@@ -44,10 +56,14 @@ class NotificationMessageHandler
 
     private function objectToArray(object $object): array
     {
-        $result = array_map(function ($item) {
+        return array_map(function ($item) {
             return $item;
         }, (array)$object);
+    }
 
-       return $result;
+    private function sendCountChats(int $recipientId): void
+    {
+        $event = new NotificationsSentEvent($recipientId);
+        $this->dispatcher->dispatch($event);
     }
 } 

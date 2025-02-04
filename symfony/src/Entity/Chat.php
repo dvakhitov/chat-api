@@ -22,7 +22,12 @@ class Chat
     #[ORM\ManyToOne(targetEntity: Message::class)]
     private ?Message $lastMessage = null;
 
-    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'chat')]
+    #[ORM\OneToMany(
+        targetEntity: Message::class,
+        mappedBy: 'chat',
+        cascade: ['remove'],
+        orphanRemoval: true)
+    ]
     private Collection $messages;
 
     #[ORM\OneToMany(targetEntity: ChatPartner::class, mappedBy: 'chat')]

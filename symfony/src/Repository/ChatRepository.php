@@ -25,8 +25,7 @@ class ChatRepository extends ServiceEntityRepository
             ->andWhere('cp2.user = :user2')
             ->setParameter('type', 'private')
             ->setParameter('user1', $user1)
-            ->setParameter('user2', $user2)
-        ;
+            ->setParameter('user2', $user2);
 
         $chat = $qb->getQuery()->getOneOrNullResult();
 
@@ -59,10 +58,28 @@ class ChatRepository extends ServiceEntityRepository
             ->join('c.chatPartners', 'cp')
             ->join('c.messages', 'm')
             ->andWhere('cp.id = :chatPartner')
-            ->andWhere('m.isRead = :false')
+            ->andWhere('m.isRead = false')
             ->setParameter('chatPartner', $chatPartner)
-            ->setParameter('false', false)
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function getCountUnreadMessagesByChatPartner(int $chatPartnerId, int $chatId)
+    {
+        return $this->createQueryBuilder('c')
+            ->select('COUNT(m.id)') // DISTINCT не нужен, так как m.id уникален
+            ->join('c.messages', 'm')
+            ->join('m.sender', 'u') // Присоединяем отправителя сообщения (User)
+            ->join('c.chatPartners', 'cp') // Присоединяем чат-партнеров
+            ->where('c.id = :chatId')
+            ->andWhere('u.id != cp.user') // Сообщение отправлено НЕ текущим пользователем
+            ->andWhere('cp.id = :chatPartnerId') // Фильтруем партнера
+            ->andWhere('m.isRead = false') // Только непрочитанные сообщения
+            ->setParameter('chatId', $chatId)
+            ->setParameter('chatPartnerId', $chatPartnerId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+
 }

@@ -15,12 +15,16 @@ class Message
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Chat::class, inversedBy: 'messages')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Chat $chat = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'messages')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $sender = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'messages')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $recipient = null;
 
     #[ORM\Column(type: 'text')]
     private ?string $content = null;
@@ -136,5 +140,15 @@ class Message
     public function getStatus(): string
     {
         return $this->isRead ? 'read' : 'sent';
+    }
+
+    public function getRecipient(): ?User
+    {
+        return $this->recipient;
+    }
+
+    public function setRecipient(?User $recipient): void
+    {
+        $this->recipient = $recipient;
     }
 } 

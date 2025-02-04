@@ -49,3 +49,6 @@ services:
 
     App\Service\MessageHandler\ChatMessageHandler: ~
     App\Service\MessageHandler\PrivateMessageHandler: ~
+#    App\EventListener\NotificationsSentEventListener:
+#        tags:
+#            - {name: kernel.event_listener}

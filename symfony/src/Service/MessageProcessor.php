@@ -4,13 +4,13 @@ namespace App\Service;
 
 use App\DTO\ChatMessageDtoInterface;
 use App\DTO\NotificationMessage\AbstractNotificationMessageDTO;
-use App\Event\NotificationSentEvent;
 use App\Message\NotificationMessage;
 use App\Service\MessageHandler\ChatMessageHandler;
 use App\Service\MessageHandler\SystemMessageHandler;
 use App\Service\MessageHandler\MessageHandlerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 class MessageProcessor
 {
@@ -48,13 +48,11 @@ class MessageProcessor
                 $message = new NotificationMessage($item, $this->getSenderId($partnersIds, $item));
                 $this->messageBus->dispatch($message);
             }
-            $event = new NotificationSentEvent(5, );
         } catch (\Throwable $e) {
             $this->logger->error('Error processing message: ' . $e->getMessage(), [
                 'exception' => $e,
                 'messageData' => $messageData
             ]);
-            // Обработка ошибки
         }
     }
 
