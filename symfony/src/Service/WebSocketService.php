@@ -18,14 +18,13 @@ readonly class WebSocketService
         $this->logger->info("WebSocket URL: {$this->webSocketUrl}");
     }
 
-    public function send($data, int $userId): void
+    public function send(array|object $data, int $userId): void
     {
         try {
             if (!is_array($data)) {
                 $data = $this->serializer->normalize($data, null, ['groups' => ['websocket']]);
             }
 
-            // Формируем данные для отправки
             $messageData = [
                 'recipient' => $userId,
                 'type' => $data['type'] ?? 'message', // Убедитесь, что есть значение по умолчанию

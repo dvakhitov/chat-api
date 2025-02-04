@@ -11,6 +11,7 @@ class NotificationsSentEvent extends Event
     {
         $this->recipientId = $recipientId;
     }
+
     public function getRecipientId(): int
     {
         return $this->recipientId;

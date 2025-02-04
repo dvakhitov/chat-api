@@ -2,7 +2,7 @@
 
 namespace App\MessageHandler;
 
-use App\DTO\NotificationMessage\RecipientNotificationMessageDTO;
+use App\DTO\NotificationMessage\SenderNotificationMessageDTO;
 use App\Event\NotificationsSentEvent;
 use App\Message\NotificationMessage;
 use App\Service\WebSocketService;
@@ -24,7 +24,7 @@ readonly class NotificationMessageHandler
     {
         $this->webSocketService->send($this->objectsToArray($message->data), $message->senderId);
 
-        if ($message->data instanceof RecipientNotificationMessageDTO) {
+        if ($message->data instanceof SenderNotificationMessageDTO) {
             $recipientId = $message->data->chatPartner->userId;
             if (!$recipientId) {
                 $this->logger->error(

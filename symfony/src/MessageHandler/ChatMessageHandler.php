@@ -22,7 +22,7 @@ readonly class ChatMessageHandler
     public function __invoke(ChatMessage $message): void
     {
         $sender = $this->userRepository->findOneByChatUuid($message->getSender());
-        
+
         if (!$sender) {
             throw new \Exception('Sender not found');
         }

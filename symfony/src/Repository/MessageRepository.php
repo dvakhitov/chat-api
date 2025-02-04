@@ -12,4 +12,15 @@ class MessageRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Message::class);
     }
+
+    public function countUnreadChatsForRecipient(int $recipientId)
+    {
+        return $this->createQueryBuilder('m')
+            ->select('COUNT(DISTINCT m.chat)')
+            ->where('m.recipient = :recipientId')
+            ->andWhere('m.isRead = false')
+            ->setParameter('recipientId', $recipientId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

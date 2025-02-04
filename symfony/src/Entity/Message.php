@@ -147,8 +147,10 @@ class Message
         return $this->recipient;
     }
 
-    public function setRecipient(?User $recipient): void
+    public function setRecipient(?User $recipient): self
     {
         $this->recipient = $recipient;
+
+        return $this;
     }
 } 

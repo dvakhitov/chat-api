@@ -80,6 +80,4 @@ class ChatRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
-
-
 }

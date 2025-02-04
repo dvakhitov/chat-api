@@ -25,7 +25,9 @@ class ChatMessageHandler implements MessageHandlerInterface
     {
         $chat = $this->getChat($messageData);
 
-        $sender = $this->getSender($chat, $messageData->sender);
+        $sender = $this->getPartner($chat, $messageData->sender);
+        $recipient = $this->getPartner($chat, $messageData->chatPartnerId);
+
         if (!$sender instanceof User) {
             throw new \RuntimeException(sprintf('User is not valid for sender.', self::class, __METHOD__));
         }
@@ -34,6 +36,7 @@ class ChatMessageHandler implements MessageHandlerInterface
             ->setChat($chat)
             ->setContent($messageData->content)
             ->setSender($sender)
+            ->setRecipient($recipient)
             ->setCreatedAt(new \DateTimeImmutable())
             ->setLocalId($messageData->returnUniqId);
 
@@ -61,11 +64,11 @@ class ChatMessageHandler implements MessageHandlerInterface
         return $this->entityManager->getRepository(Chat::class)->findOrCreatePrivateChat($users[0], $users[1]);
     }
 
-    private function getSender(Chat $chat, int $senderId): ?User
+    private function getPartner(Chat $chat, int $userId): ?User
     {
         /** @var ChatPartner $chatPartner */
         foreach ($chat->getChatPartners()->toArray() as $chatPartner) {
-            if ($chatPartner->getUser()->getId() === $senderId) {
+            if ($chatPartner->getUser()->getId() === $userId) {
                 return $chatPartner->getUser();
             }
         }
