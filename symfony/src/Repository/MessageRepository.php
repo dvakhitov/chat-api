@@ -23,4 +23,18 @@ class MessageRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function setIsReadByUser(int $userId, int $chatId)
+    {
+        $this->createQueryBuilder('m')
+            ->update()
+            ->set('m.isRead', ':isRead')
+            ->where('m.chat = :chatId')
+            ->andWhere('m.recipient = :userId')
+            ->setParameter('chatId', $chatId)
+            ->setParameter('userId', $userId)
+            ->setParameter('isRead', true, \PDO::PARAM_BOOL)
+            ->getQuery()
+            ->execute();
+    }
 }

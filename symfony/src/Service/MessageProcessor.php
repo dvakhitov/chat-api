@@ -22,7 +22,6 @@ class MessageProcessor
         ChatMessageHandler $chatHandler,
         SystemMessageHandler $systemMessageHandler
     ) {
-        // Регистрируем обработчики для разных типов сообщений
         $this->handlers = [
             'message' => $chatHandler,
             'system' => $systemMessageHandler

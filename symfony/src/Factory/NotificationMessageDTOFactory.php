@@ -70,5 +70,4 @@ readonly class NotificationMessageDTOFactory
 
         return $this->chatRepository->getCountUnreadMessagesByChatPartner($actualChatPartner->getId(), $chat->getId());
     }
-
 }

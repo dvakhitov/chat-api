@@ -29,7 +29,7 @@ class Message
     #[ORM\Column(type: 'text')]
     private ?string $content = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: false, options: ['default' => false])]
     private bool $isRead = false;
 
     #[ORM\Column(type: 'datetimetz_immutable', nullable: true)]

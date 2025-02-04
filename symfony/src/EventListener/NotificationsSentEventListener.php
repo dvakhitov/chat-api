@@ -5,6 +5,7 @@ namespace App\EventListener;
 use App\Event\NotificationsSentEvent;
 use App\Repository\MessageRepository;
 use App\Service\WebSocketService;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 final readonly class NotificationsSentEventListener
@@ -12,6 +13,7 @@ final readonly class NotificationsSentEventListener
     public function __construct(
         private MessageRepository $messageRepository,
         private WebSocketService $webSocketService,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -23,7 +25,13 @@ final readonly class NotificationsSentEventListener
             'countChats' => $this->getCountChats($event->getRecipientId())
         ];
 
-        $this->webSocketService->send($data, $event->getRecipientId());
+        try {
+            $this->webSocketService->send($data, $event->getRecipientId());
+        } catch (\Exception $e) {
+            $this->logger->error('Error sending data to WebSocket server', [
+                'exception' => $e,
+            ]);
+        }
     }
 
     private function getCountChats(int $recipientId): int

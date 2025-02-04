@@ -80,4 +80,16 @@ class ChatRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+//    public function getLastMessageOfTheChat(Chat $chat)
+//    {
+//        return $this->createQueryBuilder('c')
+//            ->select('m')
+//            ->join('c.messages', 'm')
+//            ->orderBy('m.createdAt', 'DESC')
+//            ->setMaxResults(1)
+//            ->getQuery()
+//            ->getOneOrNullResult()
+//            ;
+//    }
 }

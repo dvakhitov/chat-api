@@ -60,6 +60,7 @@ class MessageService
     {
         $datDto = new ChatMessageReadDTO();
         $datDto->id = $data['id'];
+        $datDto->type = 'system';
         $datDto->chatPartnerId = $data['chatPartnerId'];
 
         return $datDto;

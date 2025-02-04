@@ -8,4 +8,7 @@ class ChatMessageReadDTO implements ChatMessageDtoInterface
 
     public ?int $id = null;
 
+    public string $type;
+
+    public ?int $sender = null;
 }

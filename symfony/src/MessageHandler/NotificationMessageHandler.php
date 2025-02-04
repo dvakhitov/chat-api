@@ -48,7 +48,9 @@ readonly class NotificationMessageHandler
                 $result[$key] = $value;
             }
         } catch (\Throwable $th) {
-            dd($data, $th);
+            $this->logger->error($th->getMessage(), [
+                'exception' => $th,
+            ]);
         }
 
         return $result;

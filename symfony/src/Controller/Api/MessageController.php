@@ -27,7 +27,7 @@ class MessageController extends AbstractController
             $this->logger->error('Error sending message', [
                 'exception' => $e,
             ]);
-            dd($e);
+
             return $this->json(['error' => 'Error sending message'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
