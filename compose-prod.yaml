@@ -24,11 +24,6 @@ services:
       - symfony_net
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nginx.rule=Host(`ws.trippost.online`)"
-      - "traefik.http.routers.nginx.entrypoints=websecure"
-      - "traefik.http.routers.nginx.tls.certresolver=myresolver"
-      - "traefik.http.services.nginx.loadbalancer.server.port=80"
-      - "traefik.docker.network=symfony_net"
 
   # Nginx как "внутренний" лоад-балансер или фронт,
   # который будет обслуживать статику и проксировать PHP-FPM
@@ -56,7 +51,7 @@ services:
       retries: 3
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nginx.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.nginx.rule=Host(`ws.trippost.online`)"
       - "traefik.http.routers.nginx.entrypoints=websecure"
       - "traefik.http.routers.nginx.tls.certresolver=myresolver"
       - "traefik.http.services.nginx.loadbalancer.server.port=80"
