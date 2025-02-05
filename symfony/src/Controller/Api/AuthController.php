@@ -10,7 +10,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\{Response, JsonResponse};
 use Symfony\Component\Routing\Annotation\Route;
 use App\Security\JWT;
-use Symfony\Component\Uid\Uuid;
 
 #[Route('/api/auth')]
 class AuthController extends AbstractController
@@ -47,6 +46,7 @@ class AuthController extends AbstractController
                 $user->setFirstName($payload['firstname'] ?? $payload['firstName'] ?? '');
                 $user->setLastName($payload['lastname'] ?? $payload['lastName'] ?? '');
                 $user->setPhotoUrl($payload['photoUrl'] ?? '');
+                $user->setRoles($payload['roles'] ?? '');
 
                 $this->entityManager->persist($user);
                 $this->entityManager->flush();

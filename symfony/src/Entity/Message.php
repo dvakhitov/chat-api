@@ -2,9 +2,30 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use App\DTO\Api\History\Message\ChatDTO;
+use App\Provider\ChatHistoryProvider;
 use App\Repository\MessageRepository;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\Link;
 
+#[ApiResource(
+    operations: [
+        new Get(
+            uriTemplate: '/chat/message/history/{chatPartnerId<\d+>}',
+            output: ChatDTO::class,
+            name: 'chat_message_history',
+            provider: ChatHistoryProvider::class
+        )
+    ],
+    uriVariables: [
+        'chatPartnerId' => new Link(
+            fromClass: ChatDTO::class,
+            identifiers: ['chatPartnerId']
+        )
+    ]
+)]
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 class Message

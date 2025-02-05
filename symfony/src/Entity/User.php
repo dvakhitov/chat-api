@@ -5,13 +5,15 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\HasLifecycleCallbacks]
-class User
+class User implements UserInterface
 {
     #[ORM\Id]
     #[ORM\Column(type: 'integer')]
@@ -43,18 +45,30 @@ class User
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender')]
-    private Collection $messages;
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender', fetch: 'LAZY')]
+    private Collection $messagesSent;
+
+
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'recipient', fetch: 'LAZY')]
+    private Collection $messagesReceived;
 
     #[ORM\OneToMany(targetEntity: ChatPartner::class, mappedBy: 'user')]
     private Collection $chatPartners;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $birthday = null;
     #[ORM\Column(nullable: true)]
     private ?bool $isEmailVerified = null;
 
+    /**
+     * @var list<string> The user roles
+     */
+    #[ORM\Column]
+    private array $roles = [];
+
     public function __construct()
     {
-        $this->messages = new ArrayCollection();
+        $this->messagesSent = new ArrayCollection();
         $this->chatPartners = new ArrayCollection();
     }
 
@@ -138,14 +152,24 @@ class User
         $this->updatedAt = $updatedAt;
     }
 
-    public function getMessages(): Collection
+    public function getMessagesSent(): Collection
     {
-        return $this->messages;
+        return $this->messagesSent;
     }
 
-    public function setMessages(Collection $messages): void
+    public function setMessagesSent(Collection $messagesSent): void
     {
-        $this->messages = $messages;
+        $this->messagesSent = $messagesSent;
+    }
+
+    public function getMessagesReceived(): Collection
+    {
+        return $this->messagesReceived;
+    }
+
+    public function setMessagesReceived(Collection $messagesReceived): void
+    {
+        $this->messagesReceived = $messagesReceived;
     }
 
     public function getChatPartners(): Collection
@@ -186,5 +210,70 @@ class User
     public function getIsEmailVerified(): ?bool
     {
         return $this->isEmailVerified;
+    }
+
+    public function getBirthday(): ?string
+    {
+        return $this->birthday;
+    }
+
+    public function setBirthday(?string $birthday): static
+    {
+        $this->birthday = $birthday;
+
+        return $this;
+    }
+
+    /**
+     * @return list<string>
+     * @see UserInterface
+     *
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    /**
+     * @param list<string> $roles
+     */
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function addRole(string $role): static
+    {
+        if (in_array($role, $this->roles, true)) {
+            return $this;
+        }
+
+        $this->roles[] = $role;
+
+        return $this;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials(): void
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
+    }
+
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string)$this->email;
     }
 }

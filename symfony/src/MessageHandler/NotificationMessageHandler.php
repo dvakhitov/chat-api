@@ -11,7 +11,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 #[AsMessageHandler]
-readonly class NotificationMessageHandler
+final readonly class NotificationMessageHandler
 {
     public function __construct(
         private WebSocketService $webSocketService,

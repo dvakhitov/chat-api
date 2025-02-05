@@ -31,7 +31,6 @@ readonly class WebSocketService
                 'data' => $data,
             ];
 
-
             $response = $this->httpClient->request('POST', $this->webSocketUrl . '/send', [
                 'json' => $messageData,
             ]);

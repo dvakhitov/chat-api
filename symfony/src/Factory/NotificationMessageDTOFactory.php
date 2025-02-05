@@ -4,6 +4,7 @@ namespace App\Factory;
 
 use App\DTO\ChatPartnerDTO;
 use App\DTO\NotificationMessage\AbstractNotificationMessageDTO;
+use App\DTO\NotificationMessage\HistoryRequestedNotificationMessageDTO;
 use App\DTO\NotificationMessage\RecipientNotificationMessageDTO;
 use App\DTO\NotificationMessage\SenderNotificationMessageDTO;
 use App\Entity\Chat;
@@ -25,12 +26,28 @@ readonly class NotificationMessageDTOFactory
         return $dto;
     }
 
+    public function createHistoryRequestedNotification(
+        Chat $chat,
+        int $messageSenderId,
+    ) {
+        return $this->createNotification(
+            HistoryRequestedNotificationMessageDTO::class,
+            $chat,
+            $messageSenderId
+        );
+    }
+
     public function createRecipientNotification(
         Chat $chat,
         int $messageSenderId,
         int $returnUniqId
-    ): RecipientNotificationMessageDTO | AbstractNotificationMessageDTO {
-        return $this->createNotification(RecipientNotificationMessageDTO::class, $chat, $messageSenderId, $returnUniqId);
+    ): RecipientNotificationMessageDTO|AbstractNotificationMessageDTO {
+        return $this->createNotification(
+            RecipientNotificationMessageDTO::class,
+            $chat,
+            $messageSenderId,
+            $returnUniqId
+        );
     }
 
     private function createNotification(

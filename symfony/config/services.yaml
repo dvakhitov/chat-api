@@ -47,6 +47,11 @@ services:
             $wsUrl: 'http://websocket:3001'
             $serializer: '@serializer'
 
+    App\Provider\ChatHistoryProvider:
+        arguments:
+            $messageRepository: '@App\Repository\MessageRepository'
+            $em: '@doctrine.orm.entity_manager'
+
     App\Service\MessageHandler\ChatMessageHandler: ~
     App\Service\MessageHandler\PrivateMessageHandler: ~
 #    App\EventListener\NotificationsSentEventListener:
