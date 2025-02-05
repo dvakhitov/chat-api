@@ -14,6 +14,7 @@ services:
       - --certificatesResolvers.myresolver.acme.httpChallenge.entryPoint=web
       - --certificatesResolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}
       - --certificatesResolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      - -log.level=DEBUG
     ports:
       - "80:80"      # изменено с 8080:80
       - "443:443"    # изменено с 8443:443
