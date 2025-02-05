@@ -1,77 +1,134 @@
-version: "3.8"
-
 services:
-  # Nginx as load balancer
-  nginx:
-    image: nginx:1.27.3-alpine
-    # container_name: nginx  # Убрали, чтобы не мешать масштабированию
-    depends_on:
-      - app
+  traefik:
+    image: traefik:v2.10
+    # Переменные окружения (email для LE и т.п. можно вынести в .env):
+    env_file:
+      - .env
+    command:
+      # Базовые настройки входных точек
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+
+      # Включаем dashboard (для отладки)
+      - --api.dashboard=true
+      - --api.insecure=true
+
+      # Включаем провайдер Docker
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+
+      # Настройка Let’s Encrypt (HTTP-01 challenge)
+      - --certificatesResolvers.myresolver.acme.httpChallenge=true
+      - --certificatesResolvers.myresolver.acme.httpChallenge.entryPoint=web
+      - --certificatesResolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}
+      - --certificatesResolvers.myresolver.acme.storage=/letsencrypt/acme.json
+
     ports:
-      - "${NGINX_PORT:-80}:80"  # Можно оставить дефолт 80, если NGINX_PORT не задан
+      - "80:80"
+      - "443:443"
+      # Опционально: если нужно вынести dashboard на внешний порт, то
+      # можно оставить как есть, т.к. dashboard "висит" на том же 80/443
+      # по правилу Host(`traefik.${DOMAIN}`) см. ниже.
+
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # В этот volume Traefik будет складывать acme.json с сертификатом
+      - "letsencrypt:/letsencrypt"
+      # Traefik должен иметь доступ к сокету Docker, чтобы "видеть" лейблы
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
     networks:
       - symfony_net
-    deploy:
-      mode: replicated
-      replicas: 2
-      restart_policy:
-        condition: on-failure
-      resources:
-        limits:
-          cpus: "0.50"
-          memory: 512M
+
+    labels:
+      # Пример: доступ к Dashboard по адресу traefik.вашдомен
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik.service=api@internal"
+
+  # Nginx как "внутренний" лоад-балансер или фронт,
+  # который будет обслуживать статику и проксировать PHP-FPM
+  nginx:
+    image: nginx:1.27.3-alpine
+    env_file:
+      - .env
+    environment:
+      - DOMAIN_NAME=${DOMAIN:-localhost}
+    depends_on:
+      - app
+    # Вместо публикации порта наружу — только expose (порт доступен внутри сети)
+    expose:
+      - "80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./symfony:/var/www/symfony
+    networks:
+      - symfony_net
+
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://${DOMAIN}" ]
+      test: [ "CMD", "curl", "-f", "http://${DOMAIN}/health" ]
       interval: 30s
       timeout: 5s
       retries: 3
 
-  # Symfony application
+    # Лейблы для Traefik
+    labels:
+      - "traefik.enable=true"
+      # Маршрутизатор:
+      - "traefik.http.routers.nginx.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.nginx.entrypoints=websecure"
+      - "traefik.http.routers.nginx.tls.certresolver=myresolver"
+      # Указываем, куда Traefik будет отправлять запрос внутри контейнера
+      - "traefik.http.services.nginx.loadbalancer.server.port=80"
+      # Важно указать, что сервис в сети symfony_net
+      # (это нужно Traefik для корректного роутинга внутри Docker)
+      - "traefik.docker.network=symfony_net"
+
   app:
-    image: websocket-symfony-app
+    build:
+      context: ./symfony
+      dockerfile: Dockerfile
     working_dir: /var/www/symfony
     volumes:
       - ./symfony:/var/www/symfony
-      # При необходимости монтировать .env (но лучше secrets/конфиг)
-      # - ./symfony/.env:/var/www/symfony/.env:ro
+      - ./symfony/docker/php/php-fpm.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+    expose:
+      - "9000"  # Важно для PHP-FPM
+    env_file:
+      - .env
+      - symfony/.env.local
     environment:
       APP_ENV: "${APP_ENV:-prod}"
-      # DB_PASSWORD и APP_SECRET подтягиваем через entrypoint-скрипт или аналог
-      # Здесь пример, как мы используем уже сконструированный URL:
-      DATABASE_URL: "postgresql://${DB_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:5432/{DB_NAME}"
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME}"
       APP_SECRET: "${APP_SECRET}"
-    secrets:
-      - db_password
-      - app_secret
-    depends_on:
-      - db-primary
+      MESSENGER_TRANSPORT_DSN: "${MESSENGER_TRANSPORT_DSN}"
+      APP_DEBUG: "${APP_DEBUG:-true}"
+      RABBITMQ_USER: "${RABBITMQ_USER}"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      RABBITMQ_HOST: "${RABBITMQ_HOST}"
+      RABBITMQ_PORT: "${RABBITMQ_PORT}"
+      RABBITMQ_VHOST: "${RABBITMQ_VHOST}"
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     networks:
       - symfony_net
-    deploy:
-      mode: replicated
-      replicas: 3  # Three replicas of the Symfony app
-      restart_policy:
-        condition: on-failure
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 1024M
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://${DOMAIN}/health" ]
+      test: ["CMD-SHELL", "php-fpm -t || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+    command: ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
-  # Primary PostgreSQL database
   db-primary:
     image: postgres:17.2
-    # container_name: db_primary
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${DB_USER}
-      # Вместо POSTGRES_PASSWORD используем POSTGRES_PASSWORD_FILE, чтобы читать из секрет-файла
-      POSTGRES_PASSWORD_FILE: "/run/secrets/db_password"
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - db_primary_data:/var/lib/postgresql/data
@@ -86,25 +143,24 @@ services:
         limits:
           cpus: "0.50"
           memory: 512M
-    secrets:
-      - db_password
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "${DB_USER}" ]
       interval: 30s
       timeout: 5s
       retries: 5
 
-  # Replica PostgreSQL database
   db-replica:
     image: postgres:17.2
-    # container_name: db_replica
     depends_on:
       - db-primary
     command: >
       postgres -c 'wal_level=logical' -c 'hot_standby=on'
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: symfony
-      POSTGRES_PASSWORD_FILE: "/run/secrets/db_password"
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - db_replica_data:/var/lib/postgresql/data
     networks:
@@ -118,21 +174,18 @@ services:
         limits:
           cpus: "0.50"
           memory: 512M
-    secrets:
-      - db_password
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "${DB_USER}" ]
       interval: 30s
       timeout: 5s
       retries: 5
 
-  # Redis for caching
   redis:
     image: redis:7.4
-    # container_name: redis
-    # Оставим порты, если нужно подключаться извне для теста:
+    env_file:
+      - .env
     ports:
-      - "6378:6379"
+      - "6378:6379"    # Если нужно подключиться к redis снаружи
     command: [ "redis-server", "--save", "60", "1", "--loglevel", "warning" ]
     volumes:
       - redis-data:/data
@@ -153,20 +206,79 @@ services:
       timeout: 5s
       retries: 3
 
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - symfony_net
+
+  websocket:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - WS_PORT=6001
+      - SYMFONY_SERVER=http://nginx:80
+      - RABBITMQ_USER=user
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_VHOST=/
+    # Если хотите проксировать WS через Traefik — можно убрать ports и
+    # аналогично nginx добавить expose: "6001" + лейблы Traefik.
+    ports:
+      - "6001:6001"
+    networks:
+      - symfony_net
+    depends_on:
+      nginx:
+        condition: service_started
+      app:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://${DOMAIN}:6001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
 networks:
   symfony_net:
-    # В Swarm будет overlay, в обычном Compose – bridge
-    driver: overlay
+    driver: bridge
 
 volumes:
   db_primary_data:
   db_replica_data:
   redis-data:
-
-secrets:
-  db_password:
-    external: true
-    name: "db_password"
-
+  rabbitmq_data:
   app_secret:
     external: true
+
+  # Volume для хранения сертификатов Let's Encrypt (acme.json)
+  letsencrypt:
