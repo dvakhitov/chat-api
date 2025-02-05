@@ -42,10 +42,11 @@ services:
     labels:
       # Пример: доступ к Dashboard по адресу traefik.вашдомен
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)"
-      - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
-      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.nginx.rule=Host(`ws.trippost.online`)"
+      - "traefik.http.routers.nginx.entrypoints=websecure"
+      - "traefik.http.routers.nginx.tls.certresolver=myresolver"
+      - "traefik.http.services.nginx.loadbalancer.server.port=80"
+      - "traefik.docker.network=symfony_net"
 
   # Nginx как "внутренний" лоад-балансер или фронт,
   # который будет обслуживать статику и проксировать PHP-FPM
