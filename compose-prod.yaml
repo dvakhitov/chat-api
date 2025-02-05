@@ -1,52 +1,35 @@
 services:
   traefik:
-    image: traefik:v2.10
-    # Переменные окружения (email для LE и т.п. можно вынести в .env):
-    env_file:
-      - .env
-    command:
-      # Базовые настройки входных точек
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-
-      # Включаем dashboard (для отладки)
-      - --api.dashboard=true
-      - --api.insecure=true
-
-      # Включаем провайдер Docker
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-
-      # Настройка Let’s Encrypt (HTTP-01 challenge)
-      - --certificatesResolvers.myresolver.acme.httpChallenge=true
-      - --certificatesResolvers.myresolver.acme.httpChallenge.entryPoint=web
-      - --certificatesResolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}
-      - --certificatesResolvers.myresolver.acme.storage=/letsencrypt/acme.json
-
-    ports:
-      - "8080:80"
-      - "8443:443"
-      # Опционально: если нужно вынести dashboard на внешний порт, то
-      # можно оставить как есть, т.к. dashboard "висит" на том же 80/443
-      # по правилу Host(`traefik.${DOMAIN}`) см. ниже.
-
-    volumes:
-      # В этот volume Traefik будет складывать acme.json с сертификатом
-      - "letsencrypt:/letsencrypt"
-      # Traefik должен иметь доступ к сокету Docker, чтобы "видеть" лейблы
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-
-    networks:
-      - symfony_net
-
-    labels:
-      # Пример: доступ к Dashboard по адресу traefik.вашдомен
-      - "traefik.enable=true"
-      - "traefik.http.routers.nginx.rule=Host(`ws.trippost.online`)"
-      - "traefik.http.routers.nginx.entrypoints=websecure"
-      - "traefik.http.routers.nginx.tls.certresolver=myresolver"
-      - "traefik.http.services.nginx.loadbalancer.server.port=80"
-      - "traefik.docker.network=symfony_net"
+    traefik:
+      image: traefik:v2.10
+      env_file:
+        - .env
+      command:
+        - --entrypoints.web.address=:80
+        - --entrypoints.websecure.address=:443
+        - --api.dashboard=true
+        - --api.insecure=true
+        - --providers.docker=true
+        - --providers.docker.exposedbydefault=false
+        - --certificatesResolvers.myresolver.acme.httpChallenge=true
+        - --certificatesResolvers.myresolver.acme.httpChallenge.entryPoint=web
+        - --certificatesResolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}
+        - --certificatesResolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      ports:
+        - "80:80"      # изменено с 8080:80
+        - "443:443"    # изменено с 8443:443
+      volumes:
+        - "letsencrypt:/letsencrypt"
+        - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      networks:
+        - symfony_net
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.nginx.rule=Host(`ws.trippost.online`)"
+        - "traefik.http.routers.nginx.entrypoints=websecure"
+        - "traefik.http.routers.nginx.tls.certresolver=myresolver"
+        - "traefik.http.services.nginx.loadbalancer.server.port=80"
+        - "traefik.docker.network=symfony_net"
 
   # Nginx как "внутренний" лоад-балансер или фронт,
   # который будет обслуживать статику и проксировать PHP-FPM
@@ -58,7 +41,8 @@ services:
       - DOMAIN_NAME=${DOMAIN:-localhost}
     depends_on:
       - app
-    # Вместо публикации порта наружу — только expose (порт доступен внутри сети)
+    ports:
+      - "8000:80"    # добавлено, чтобы Nginx был доступен на порту 8000
     expose:
       - "80"
     volumes:
@@ -66,24 +50,17 @@ services:
       - ./symfony:/var/www/symfony
     networks:
       - symfony_net
-
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://${DOMAIN}/health" ]
       interval: 30s
       timeout: 5s
       retries: 3
-
-    # Лейблы для Traefik
     labels:
       - "traefik.enable=true"
-      # Маршрутизатор:
       - "traefik.http.routers.nginx.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.nginx.entrypoints=websecure"
       - "traefik.http.routers.nginx.tls.certresolver=myresolver"
-      # Указываем, куда Traefik будет отправлять запрос внутри контейнера
       - "traefik.http.services.nginx.loadbalancer.server.port=80"
-      # Важно указать, что сервис в сети symfony_net
-      # (это нужно Traefik для корректного роутинга внутри Docker)
       - "traefik.docker.network=symfony_net"
 
   app:
@@ -114,11 +91,11 @@ services:
     networks:
       - symfony_net
     healthcheck:
-      test: ["CMD-SHELL", "php-fpm -t || exit 1"]
+      test: [ "CMD-SHELL", "php-fpm -t || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
-    command: ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+    command: [ "/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf" ]
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -220,7 +197,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -264,7 +241,7 @@ services:
           cpus: "0.50"
           memory: 512M
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://${DOMAIN}:6001/health"]
+      test: [ "CMD", "wget", "-qO-", "http://${DOMAIN}:6001/health" ]
       interval: 30s
       timeout: 5s
       retries: 3
