@@ -81,15 +81,26 @@ class ChatRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-//    public function getLastMessageOfTheChat(Chat $chat)
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->select('m')
-//            ->join('c.messages', 'm')
-//            ->orderBy('m.createdAt', 'DESC')
-//            ->setMaxResults(1)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//            ;
-//    }
+    public function findAllChatsByUser(User $user, int $page = 1, int $limit = 20): array
+    {
+        return $this->createQueryBuilder('c')
+            ->select('DISTINCT c, lm.id')
+            // Соединяем с ChatPartner
+            ->join('c.chatPartners', 'cp')
+            // Соединяем с полем lastMessage (можно leftJoin, если lastMessage может быть null)
+            ->join('c.lastMessage', 'lm')
+
+            ->where('cp.user = :user')
+            ->setParameter('user', $user)
+
+            // Сортируем по lastMessage.id
+            ->orderBy('lm.id', 'DESC')
+
+            // Пагинация, если нужно
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+
+            ->getQuery()
+            ->getResult();
+    }
 }

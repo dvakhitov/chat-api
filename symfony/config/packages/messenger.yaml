@@ -1,6 +1,11 @@
 framework:
     messenger:
         default_bus: command.bus
+        serializer:
+            default_serializer: messenger.transport.symfony_serializer
+            symfony_serializer:
+                format: json
+                context: { }
 
         buses:
             command.bus:
@@ -34,13 +39,32 @@ framework:
 
             sync: 'sync://'
 
+            main_processing:
+                dsn: '%env(MESSENGER_MAIN_DSN)%'
+                options:
+                    exchange:
+                        name: main_processing
+                        type: direct
+                    queues:
+                        main_processing_queue: ~
+
+            notifications:
+                dsn: '%env(MESSENGER_NOTIFICATIONS_DSN)%'
+                options:
+                    exchange:
+                        name: notifications
+                        type: direct
+                    queues:
+                        notifications_queue: ~
+
         routing:
+            '*': sync
             # Route your messages to the transports
             # 'App\Message\YourMessage': async
-            App\Message\ProcessChatMessage:
-                senders:
-                    #- async_messages
-                    - sync
+#            App\Message\ProcessChatMessage: messages_queue
+#            App\Message\ProcessChatMessage: async_messages
+#            App\Message\NotificationMessage: messages_queue
+#            App\Message\NotificationMessage: async_messages
 
 # when@test:
 #    framework:

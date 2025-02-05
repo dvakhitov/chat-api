@@ -10,7 +10,6 @@ use App\Service\MessageHandler\SystemMessageHandler;
 use App\Service\MessageHandler\MessageHandlerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 class MessageProcessor
 {

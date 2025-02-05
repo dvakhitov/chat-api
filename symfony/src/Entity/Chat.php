@@ -2,11 +2,25 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use App\DTO\Api\History\Chat\ChatsHistoryDTO;
+use App\Provider\ChatHistoryProvider;
 use App\Repository\ChatRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+#[ApiResource(
+    operations: [
+        new Get(
+            uriTemplate: '/chat/allChats',
+            output: ChatsHistoryDTO::class,
+            provider: ChatHistoryProvider::class
+        )
+    ],
+
+)]
 #[ORM\Entity(repositoryClass: ChatRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 class Chat

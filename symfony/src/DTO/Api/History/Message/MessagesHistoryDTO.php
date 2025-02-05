@@ -3,7 +3,7 @@
 namespace App\DTO\Api\History\Message;
 
 use Symfony\Component\Serializer\Annotation\SerializedName;
-class ChatDTO
+class MessagesHistoryDTO
 {
     /** @var ChatContentDTO[] */
     #[SerializedName('content')]

@@ -4,8 +4,8 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
-use App\DTO\Api\History\Message\ChatDTO;
-use App\Provider\ChatHistoryProvider;
+use App\DTO\Api\History\Message\MessagesHistoryDTO;
+use App\Provider\MessagesHistoryProvider;
 use App\Repository\MessageRepository;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\Link;
@@ -14,14 +14,14 @@ use ApiPlatform\Metadata\Link;
     operations: [
         new Get(
             uriTemplate: '/chat/message/history/{chatPartnerId<\d+>}',
-            output: ChatDTO::class,
+            output: MessagesHistoryDTO::class,
             name: 'chat_message_history',
-            provider: ChatHistoryProvider::class
+            provider: MessagesHistoryProvider::class
         )
     ],
     uriVariables: [
         'chatPartnerId' => new Link(
-            fromClass: ChatDTO::class,
+            fromClass: MessagesHistoryDTO::class,
             identifiers: ['chatPartnerId']
         )
     ]
