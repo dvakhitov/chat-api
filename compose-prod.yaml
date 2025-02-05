@@ -24,8 +24,8 @@ services:
       - --certificatesResolvers.myresolver.acme.storage=/letsencrypt/acme.json
 
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "8443:443"
       # Опционально: если нужно вынести dashboard на внешний порт, то
       # можно оставить как есть, т.к. dashboard "висит" на том же 80/443
       # по правилу Host(`traefik.${DOMAIN}`) см. ниже.
