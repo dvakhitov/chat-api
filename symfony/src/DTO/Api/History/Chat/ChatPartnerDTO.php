@@ -1,6 +1,6 @@
 <?php
 
-namespace App\DTO\Api\History\Message;
+namespace App\DTO\Api\History\Chat;
 
 class ChatPartnerDTO
 {

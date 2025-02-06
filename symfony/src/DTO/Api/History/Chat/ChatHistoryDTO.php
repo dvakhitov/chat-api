@@ -3,10 +3,11 @@
 namespace App\DTO\Api\History\Chat;
 
 use Symfony\Component\Serializer\Annotation\SerializedName;
-
-class ChatsHistoryDTO
+class ChatHistoryDTO
 {
-    /** @var ChatHistoryItemDTO[] */
+    /** @var ChatContentDTO[] */
     #[SerializedName('content')]
     public array $content;
+
+    public int $chatPartnerId;
 }

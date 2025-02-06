@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
-use App\DTO\Api\History\Chat\ChatsHistoryDTO;
+use App\DTO\Api\History\Chat\ChatHistoryDTO;
 use App\Provider\ChatHistoryProvider;
 use App\Repository\ChatRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -15,7 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
     operations: [
         new Get(
             uriTemplate: '/chat/allChats',
-            output: ChatsHistoryDTO::class,
+            output: ChatHistoryDTO::class,
             provider: ChatHistoryProvider::class
         )
     ],
