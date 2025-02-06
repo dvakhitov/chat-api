@@ -21,8 +21,10 @@ class MessageController extends AbstractController
     #[Route('/messages', name: 'api_messages_create', methods: ['POST'])]
     public function createMessage(Request $request): Response
     {
+        $user = $this->getUser();
+
         try {
-            $this->messageService->sendMessage($request);
+            $this->messageService->sendMessage($request, $user);
         } catch (\Exception $e) {
             $this->logger->error('Error sending message', [
                 'exception' => $e,

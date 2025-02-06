@@ -17,7 +17,7 @@ security:
     #      provider: users_in_memory
 
     api:
-      pattern: ^/api/chat
+      pattern: ^/api/(chat|messages)
       custom_authenticators:
         - App\Security\JwtAuthenticator
 
@@ -32,6 +32,7 @@ security:
   access_control:
     - { path: ^/api/auth/validate-token, roles: PUBLIC_ACCESS }
     - { path: ^/api/chat/*, roles: IS_AUTHENTICATED_FULLY }
+    - { path: ^/api/messages, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
   security:

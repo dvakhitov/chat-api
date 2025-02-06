@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\DTO\ChatMessageContentDTO;
 use App\DTO\ChatMessageReadDTO;
+use App\Entity\User;
 use App\Message\ProcessChatMessage;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,10 +22,11 @@ class MessageService
     /**
      * @throws ExceptionInterface
      */
-    public function sendMessage(Request $request)
+    public function sendMessage(Request $request, User $sender)
     {
         $data = json_decode($request->getContent(), true);
 
+        $data['senderId'] = $sender->getId();
         if (isset($data['content'])) {
             $dataDto = $this->createContentDto($data);
         } elseif (isset($data['id'])) {
