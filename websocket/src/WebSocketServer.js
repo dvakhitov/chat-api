@@ -114,7 +114,7 @@ class WebSocketServer {
                 );
                 ws.userId = userId;
                 ws.token = message.token;
-                ws.send(JSON.stringify({ type: 'authenticated', userId }));
+                ws.send(JSON.stringify({ connected: 'true', countNotifications: 2, countChats: 0 }));
 
                 console.log(`Client authenticated: User ID ${ws.userId}`);
             } else {
