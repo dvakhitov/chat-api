@@ -11,7 +11,7 @@ class WebSocketServer {
         this.clientManager = new ClientManager();
         this.authService = new AuthService(config.symfonyServer);
         this.messageHandler = new MessageHandler(this.config.symfonyServer, this.clientManager);
-        
+
         this.setupHttpServer();
         this.setupWebSocketServer();
         console.log('WebSocketServer constructor finished');
@@ -19,7 +19,7 @@ class WebSocketServer {
 
     setupWebSocketServer() {
         const wsServer = http.createServer();
-        this.wss = new WebSocket.Server({ server: wsServer });
+        this.wss = new WebSocket.Server({server: wsServer});
         wsServer.listen(this.config.port, () => {
             console.log(`WebSocket server is running on port ${this.config.port}`);
         });
@@ -38,7 +38,7 @@ class WebSocketServer {
                 ws.close(4001, 'Authentication timeout');
                 this.clientManager.removePendingClient(connectionId);
             }
-        }, this.config.authTimeout || tenMinutes); 
+        }, this.config.authTimeout || tenMinutes);
 
         ws.on('message', async (data) => {
             console.log('Received data:', data);
@@ -48,14 +48,14 @@ class WebSocketServer {
                 if (message.jwt) {
                     message.token = message.jwt;
                 }
-                
+
                 // Проверяем, аутентифицирован ли клиент
                 if (!this.clientManager.isClientAuthenticated(ws)) {
                     // Если не аутентифицирован, инициируем процесс аутентификации
                     await this.handleAuthenticationMessage(ws, data, connectionId, authTimeout);
                     return;
                 }
-                
+
                 // Если клиент аутентифицирован, обрабатываем сообщение
                 await this.handleMessage(ws, data);
             } catch (error) {
@@ -88,13 +88,13 @@ class WebSocketServer {
             }
         } catch (error) {
             console.error('JSON parsing error:', error);
-            ws.send(JSON.stringify({ error: 'Invalid JSON format' }));
+            ws.send(JSON.stringify({error: 'Invalid JSON format'}));
             ws.close(4005, 'Invalid JSON format');
             return;
         }
 
         if (!message.token) {
-            ws.send(JSON.stringify({ error: 'No token provided' }));
+            ws.send(JSON.stringify({error: 'No token provided'}));
             ws.close(4002, 'No token provided');
             return;
         }
@@ -114,25 +114,30 @@ class WebSocketServer {
                 );
                 ws.userId = userId;
                 ws.token = message.token;
-                ws.send(JSON.stringify({ connected: 'true', countNotifications: 2, countChats: 0 }));
+                ws.send(JSON.stringify({
+                        connected: true,
+                        countNotifications: 2,
+                        countChats: 0
+                    }
+                ));
 
                 console.log(`Client authenticated: User ID ${ws.userId}`);
             } else {
-                ws.send(JSON.stringify({ error: 'Invalid token' }));
+                ws.send(JSON.stringify({error: 'Invalid token'}));
                 ws.close(4003, 'Invalid token');
             }
         } catch (error) {
             console.error('Authentication error:', error);
-            ws.send(JSON.stringify({ error: 'Authentication failed' }));
+            ws.send(JSON.stringify({error: 'Authentication failed'}));
             ws.close(4004, 'Authentication failed');
         }
     }
 
     async handleMessage(ws, data) {
         const authenticatedClient = this.clientManager.getClientByWs(ws);
-        
+
         if (!authenticatedClient) {
-            ws.send(JSON.stringify({ error: 'Unauthorized' }));
+            ws.send(JSON.stringify({error: 'Unauthorized'}));
             return;
         }
 
@@ -160,11 +165,11 @@ class WebSocketServer {
 
         // Добавляем health check endpoint
         app.get('/health', (req, res) => {
-            res.json({ status: 'OK' });
+            res.json({status: 'OK'});
         });
 
         app.post('/send', (req, res) => {
-            const { recipient, data, type } = req.body;
+            const {recipient, data, type} = req.body;
             console.log(`Received send request to recipient: ${recipient}`);
 
             // Получаем список подключенных клиентов
@@ -184,10 +189,10 @@ class WebSocketServer {
                 // Отправляем сообщение клиенту
                 ws.send(JSON.stringify(messageToSend));
 
-                res.json({ status: 'sent' });
+                res.json({status: 'sent'});
             } else {
                 console.log(`Client with userId ${recipient} not found.`);
-                res.status(404).json({ error: 'Client not found' });
+                res.status(404).json({error: 'Client not found'});
             }
         });
 
