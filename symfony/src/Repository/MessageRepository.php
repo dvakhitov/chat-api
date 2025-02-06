@@ -55,11 +55,10 @@ class MessageRepository extends ServiceEntityRepository
     ): Paginator {
         // Создаем QueryBuilder
         $qb = $this->createQueryBuilder('m')
-            ->where('m.recipient = :recipient')
-            ->andWhere('m.sender = :sender')
+            ->where('(m.sender = :recipient AND m.recipient = :sender) OR (m.sender = :sender AND m.recipient = :recipient)')
             ->orderBy('m.id', 'DESC')
-            ->setParameter('sender', $chatPartnerId)
-            ->setParameter('recipient', $recipient);
+            ->setParameter('recipient', $recipient)
+            ->setParameter('sender', $chatPartnerId);
 
         $query = $qb->getQuery()
             // Пагинация

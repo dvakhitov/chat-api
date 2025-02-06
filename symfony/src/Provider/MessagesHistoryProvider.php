@@ -4,15 +4,18 @@ namespace App\Provider;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\DTO\Api\History\Chat\LastMessageDTO;
 use App\DTO\Api\History\Message\ChatContentDTO;
 use App\DTO\Api\History\Message\ChatPartnerDTO;
-use App\DTO\Api\History\Message\LastMessageDTO;
 use App\DTO\Api\History\Message\MessagesHistoryDTO;
+use App\Entity\Chat;
 use App\Entity\Message;
 use App\Entity\User;
 use App\Event\HistoryRequestedEvent;
+use App\Factory\History\MessagesHistoryDTOFactory;
 use App\Repository\MessageRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
@@ -23,6 +26,8 @@ readonly class MessagesHistoryProvider implements ProviderInterface
         private Security $security,
         private EntityManagerInterface $em,
         private EventDispatcherInterface $dispatcher,
+        private MessagesHistoryDTOFactory $messagesHistoryDTOFactory,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -33,12 +38,8 @@ readonly class MessagesHistoryProvider implements ProviderInterface
 
         /** @var User $user */
         $user = $this->security->getUser();
-        // 1. Выбираем нужные сообщения
-        // Возможно, вы захотите использовать query-параметры для фильтрации
-        // или брать ID конкретного чата/пользователя из $uriVariables.
-        // Здесь просто возьмём все:
-        /** @var Message[] $messages */
-        $messages = $this->messageRepository->findMessagesOfChatForRecipient(
+
+        $messagesPaginator = $this->messageRepository->findMessagesOfChatForRecipient(
             recipient: $user,
             chatPartnerId: $uriVariables['chatPartnerId'],
             page: $queryParams['page'] ?? 1,
@@ -46,7 +47,7 @@ readonly class MessagesHistoryProvider implements ProviderInterface
         );
 
         $chat = null;
-        foreach ($messages as $message) {
+        foreach ($messagesPaginator as $message) {
             if (is_null($chat)) {
                 $chat = $message->getChat();
             }
@@ -54,50 +55,22 @@ readonly class MessagesHistoryProvider implements ProviderInterface
         }
         $this->em->flush();
 
+        $messageHistoryDTO = $this->messagesHistoryDTOFactory->create($messagesPaginator->getIterator()->getArrayCopy());
 
-        // 2. Создаём корневой DTO
-        $chatDTO = new MessagesHistoryDTO();
-        $chatDTO->content = [];
+        $this->dispatcher->dispatch(new HistoryRequestedEvent($chat, $this->getChatPartnerUser($chat, $user)));
 
-        // 3. Наполняем DTO данными
-        foreach ($messages as $message) {
-            $chatContentDTO = new ChatContentDTO();
+        return $messageHistoryDTO;
+    }
 
-            // ---- chatPartner (на выбор sender или recipient) ----
-            $messageRecipient = $message->getRecipient();
-            $chatPartnerDTO = new ChatPartnerDTO();
-            $chatPartnerDTO->id = $messageRecipient->getId();
-            $chatPartnerDTO->email = $messageRecipient->getEmail();
-            $chatPartnerDTO->firstName = $messageRecipient->getFirstName();
-            $chatPartnerDTO->lastName = $messageRecipient->getLastName();
-            $chatPartnerDTO->photoUrl = $messageRecipient->getPhotoUrl();
-            $chatPartnerDTO->createdDate = ($messageRecipient->getCreatedAt()) ? $messageRecipient->getCreatedAt()->format('Y-m-d H:i:s') : '';
-            $chatPartnerDTO->emailVerified = (bool)$messageRecipient->getIsEmailVerified();
-
-            $chatContentDTO->chatPartner = $chatPartnerDTO;
-
-            // ---- lastMessage ----
-            $lastMessageDTO = new LastMessageDTO();
-            $lastMessageDTO->id = $message->getId();
-            $lastMessageDTO->senderId = $message->getSender()?->getId() ?? 0;
-            $lastMessageDTO->createdDate = $message->getCreatedAt()?->format(DATE_ATOM) ?? '';
-            $lastMessageDTO->updatedDate = $message->getUpdatedAt()?->format(DATE_ATOM) ?? '';
-            $lastMessageDTO->content = $message->getContent() ?? '';
-            $lastMessageDTO->status = $message->getStatus();
-
-            $chatContentDTO->lastMessage = $lastMessageDTO;
-
-            // ---- кол-во непрочитанных (примерная логика) ----
-            $chatContentDTO->numberUnreadMessages = $message->isRead() ? 0 : 1;
-
-            // ---- некий timestamp (пример) ----
-            $chatContentDTO->numberUnreadTimeStamp = time() * 1000;
-
-            $chatDTO->content[] = $chatContentDTO;
+    private function getChatPartnerUser(Chat $chat, User $user): User
+    {
+        foreach ($chat->getChatPartners() as $chatPartner) {
+            if ($chatPartner->getUser()->getId() !== $user->getId()) {
+                return $chatPartner->getUser();
+            }
         }
 
-        $this->dispatcher->dispatch(new HistoryRequestedEvent($chat, $user));
-
-        return $chatDTO;
+        $this->logger->error('Chat partner not found - chatId: ' . $chat->getId() . ' userId: ' . $user->getId() . __METHOD__);
+        throw new \RuntimeException('Chat partner not found');
     }
 }
