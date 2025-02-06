@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use App\Entity\User;
 use App\Service\MessageService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,6 +22,7 @@ class MessageController extends AbstractController
     #[Route('/messages', name: 'api_messages_create', methods: ['POST'])]
     public function createMessage(Request $request): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
 
         try {
