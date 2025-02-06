@@ -15,7 +15,6 @@ class MessagesHistoryDTOFactory
      */
     public function create(array $messages): MessagesHistoryDTO
     {
-        // 2. Создаём корневой DTO
         $messagesHistoryDTO = new MessagesHistoryDTO();
         $messagesHistoryDTO->content = [];
         foreach ($messages as $message) {

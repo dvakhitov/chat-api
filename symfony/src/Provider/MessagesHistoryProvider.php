@@ -4,12 +4,8 @@ namespace App\Provider;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\DTO\Api\History\Chat\LastMessageDTO;
-use App\DTO\Api\History\Message\ChatContentDTO;
-use App\DTO\Api\History\Message\ChatPartnerDTO;
 use App\DTO\Api\History\Message\MessagesHistoryDTO;
 use App\Entity\Chat;
-use App\Entity\Message;
 use App\Entity\User;
 use App\Event\HistoryRequestedEvent;
 use App\Factory\History\MessagesHistoryDTOFactory;
@@ -57,6 +53,9 @@ readonly class MessagesHistoryProvider implements ProviderInterface
 
         $messageHistoryDTO = $this->messagesHistoryDTOFactory->create($messagesPaginator->getIterator()->getArrayCopy());
 
+        if (empty($messageHistoryDTO->content)) {
+            return $messageHistoryDTO;
+        }
         $this->dispatcher->dispatch(new HistoryRequestedEvent($chat, $this->getChatPartnerUser($chat, $user)));
 
         return $messageHistoryDTO;
