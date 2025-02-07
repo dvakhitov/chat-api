@@ -51,7 +51,7 @@ readonly class MessagesHistoryProvider implements ProviderInterface
         }
         $this->em->flush();
 
-        $messageHistoryDTO = $this->messagesHistoryDTOFactory->create($messagesPaginator->getIterator()->getArrayCopy());
+        $messageHistoryDTO = $this->messagesHistoryDTOFactory->create($messagesPaginator->getIterator()->getArrayCopy(), $user);
 
         if (empty($messageHistoryDTO->content)) {
             return $messageHistoryDTO;
