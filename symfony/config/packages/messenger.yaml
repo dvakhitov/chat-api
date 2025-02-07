@@ -58,7 +58,7 @@ framework:
                         notifications_queue: ~
 
         routing:
-            '*': sync
+            '*': async
             # Route your messages to the transports
             # 'App\Message\YourMessage': async
 #            App\Message\ProcessChatMessage: messages_queue
