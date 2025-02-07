@@ -32,6 +32,9 @@ class LastMessageDto
                 $this->createdDate = $updatedDate;
             }
         }
+        get {
+            return $this->updatedDate;
+        }
     }
 
     public string $content;
