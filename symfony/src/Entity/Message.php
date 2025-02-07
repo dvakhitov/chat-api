@@ -28,6 +28,10 @@ use ApiPlatform\Metadata\Link;
 )]
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ORM\Index(
+    name: "chat_recipient_idx",
+    columns: ["chat_id", "recipient_id"],
+)]
 class Message
 {
     #[ORM\Id]

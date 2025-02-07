@@ -29,7 +29,7 @@ readonly class NotificationMessageDTOFactory
     public function createHistoryRequestedNotification(
         Chat $chat,
         int $messageSenderId,
-    ) {
+    ): AbstractNotificationMessageDTO {
         return $this->createNotification(
             HistoryRequestedNotificationMessageDTO::class,
             $chat,

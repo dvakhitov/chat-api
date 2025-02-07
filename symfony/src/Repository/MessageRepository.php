@@ -6,6 +6,7 @@ use App\Entity\Chat;
 use App\Entity\Message;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Exception\DeadlockException;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 
@@ -27,6 +28,9 @@ class MessageRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @throws DeadlockException
+     */
     public function setIsReadByUser(int $userId, int $chatId): void
     {
         $this->createQueryBuilder('m')
@@ -34,9 +38,9 @@ class MessageRepository extends ServiceEntityRepository
             ->set('m.isRead', ':isRead')
             ->where('m.chat = :chatId')
             ->andWhere('m.recipient = :userId')
+            ->andWhere('m.isRead = false')
             ->setParameter('chatId', $chatId)
             ->setParameter('userId', $userId)
-            ->setParameter('isRead', true, \PDO::PARAM_BOOL)
             ->getQuery()
             ->execute();
     }
@@ -67,21 +71,5 @@ class MessageRepository extends ServiceEntityRepository
 
         // Paginator позволяет удобно узнавать общее число элементов и т.д.
         return new Paginator($query, fetchJoinCollection: true);
-    }
-
-    public function setMessagesOfChatReadForRecipient(
-        Chat $chat,
-        User $recipient
-    ): void {
-        $this->createQueryBuilder('m')
-            ->update()
-            ->set('m.isRead', ':read')
-            ->andWhere('m.chat = :chat')
-            ->andWhere('m.recipient = :recipient')
-            ->setParameter('read', true)
-            ->setParameter('chat', $chat)
-            ->setParameter('recipient', $recipient)
-            ->getQuery()
-            ->execute();
     }
 }
