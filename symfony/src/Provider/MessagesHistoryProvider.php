@@ -51,7 +51,10 @@ readonly class MessagesHistoryProvider implements ProviderInterface
         }
         $this->em->flush();
 
-        $messageHistoryDTO = $this->messagesHistoryDTOFactory->create($messagesPaginator->getIterator()->getArrayCopy(), $user);
+        $messageHistoryDTO = $this->messagesHistoryDTOFactory->create(
+            $messagesPaginator->getIterator()->getArrayCopy(),
+            $uriVariables['chatPartnerId']
+        );
 
         if (empty($messageHistoryDTO->content)) {
             return $messageHistoryDTO;
@@ -69,7 +72,9 @@ readonly class MessagesHistoryProvider implements ProviderInterface
             }
         }
 
-        $this->logger->error('Chat partner not found - chatId: ' . $chat->getId() . ' userId: ' . $user->getId() . __METHOD__);
+        $this->logger->error(
+            'Chat partner not found - chatId: ' . $chat->getId() . ' userId: ' . $user->getId() . __METHOD__
+        );
         throw new \RuntimeException('Chat partner not found');
     }
 }
