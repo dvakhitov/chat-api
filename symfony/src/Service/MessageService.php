@@ -7,6 +7,7 @@ use App\DTO\ChatMessageContentDTO;
 use App\DTO\ChatMessageReadDTO;
 use App\Entity\User;
 use App\Message\ProcessChatMessage;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\Exception\ExceptionInterface;
@@ -15,7 +16,8 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class MessageService
 {
     public function __construct(
-        private readonly MessageBusInterface $messageBus
+        private readonly MessageBusInterface $messageBus,
+        private LoggerInterface $logger
     ) {
     }
 
@@ -46,8 +48,11 @@ class MessageService
 
     private function createContentDto(array $data): ChatMessageContentDTO
     {
+        if (is_string($data['localId'])){
+            $this->logger->debug(sprintf('[localId: is string] = %s', $data['localId']) );
+        }
         $dataDto = new ChatMessageContentDTO();
-        $dataDto->content = $data['content'];
+        $dataDto->content = (int)$data['content'];
         $dataDto->returnUniqId = $data['localId'];
         $dataDto->chatPartnerId = $data['chatPartnerId'];
         $dataDto->sender = $data['senderId'];
