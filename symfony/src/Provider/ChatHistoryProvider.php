@@ -27,6 +27,6 @@ readonly class ChatHistoryProvider implements ProviderInterface
         /** @var Chat[] $chats */
         $chats = $this->chatRepository->findAllChatsByUser($user);
 
-        return $this->chatHistoryDtoFactory->create($chats);
+        return $this->chatHistoryDtoFactory->create($chats, $user);
     }
 }

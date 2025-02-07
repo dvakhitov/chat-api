@@ -7,6 +7,7 @@ use App\DTO\Api\History\Chat\ChatHistoryDTO;
 use App\DTO\Api\History\Chat\ChatPartnerDTO;
 use App\DTO\Api\History\Chat\LastMessageDTO;
 use App\Entity\Chat;
+use App\Entity\User;
 use App\Helper\DateTimeHelper;
 
 class ChatHistoryDtoFactory
@@ -15,7 +16,7 @@ class ChatHistoryDtoFactory
      * @param Chat[] $chats
      * @return ChatHistoryDTO
      */
-    public function create(array $chats): ChatHistoryDTO
+    public function create(array $chats, User $user): ChatHistoryDTO
     {
         // 2. Создаём корневой DTO
         $chatDTO = new ChatHistoryDTO();
@@ -27,18 +28,19 @@ class ChatHistoryDtoFactory
             $chatContentDTO = new ChatContentDTO();
 
             // ---- chatPartner (на выбор sender или recipient) ----
-            $messageRecipient = $message->getRecipient();
+            $chatPartner = $this->getChatPartner($chat, $user);
             $chatPartnerDTO = new ChatPartnerDTO();
-            $chatPartnerDTO->id = $messageRecipient->getId();
-            $chatPartnerDTO->email = $messageRecipient->getEmail();
-            $chatPartnerDTO->firstName = $messageRecipient->getFirstName();
-            $chatPartnerDTO->lastName = $messageRecipient->getLastName();
-            $chatPartnerDTO->photoUrl = $messageRecipient->getPhotoUrl();
-            if (!$messageRecipient->getPhotoUrl()) {
-                unset($chatPartnerDTO->photoUrl);
-            }
-            $chatPartnerDTO->createdDate = ($messageRecipient->getCreatedAt()) ? DateTimeHelper::formatWithTimezone($messageRecipient->getCreatedAt()) : '';
-            $chatPartnerDTO->emailVerified = (bool)$messageRecipient->getIsEmailVerified();
+            $chatPartnerDTO->id = $chatPartner->getId();
+            $chatPartnerDTO->email = $chatPartner->getEmail();
+            $chatPartnerDTO->firstName = $chatPartner->getFirstName();
+            $chatPartnerDTO->lastName = $chatPartner->getLastName();
+//            $chatPartnerDTO->photoUrl = $messageRecipient->getPhotoUrl();
+//            if (!$messageRecipient->getPhotoUrl()) {
+//                unset($chatPartnerDTO->photoUrl);
+//            }
+            unset($chatPartnerDTO->photoUrl);
+            $chatPartnerDTO->createdDate = ($chatPartner->getCreatedAt()) ? DateTimeHelper::formatWithTimezone($chatPartner->getCreatedAt()) : '';
+            $chatPartnerDTO->emailVerified = (bool)$chatPartner->getIsEmailVerified();
 
             $chatContentDTO->chatPartner = $chatPartnerDTO;
 
@@ -63,5 +65,16 @@ class ChatHistoryDtoFactory
         }
 
         return $chatDTO;
+    }
+
+    private function getChatPartner(Chat $chat, User $user): User
+    {
+        foreach ($chat->getChatPartners() as $partner) {
+            if ($partner->getUser()->getId() !== $user->getId()) {
+                return $partner->getUser();
+            }
+        }
+
+        throw new \RuntimeException('Chat partner not found');
     }
 }
