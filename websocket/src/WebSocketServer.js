@@ -196,6 +196,12 @@ class WebSocketServer {
             }
         });
 
+        // Добавляем новый эндпоинт для получения количества подключенных пользователей
+        app.get('/connections', (req, res) => {
+            const userCount = this.clientManager.getConnectedUserCount();
+            res.json({ connectedUsers: userCount });
+        });
+
         // Запускаем HTTP сервер на порту 3001
         app.listen(3001, () => {
             console.log('HTTP server is running on port 3001');

@@ -67,6 +67,14 @@ class ClientManager {
     getConnectedClients() {
         return Array.from(this.clients.keys());
     }
+
+    getConnectedUserCount() {
+        return this.clients.size;
+    }
+
+    getConnectedUserIds() {
+        return Array.from(this.clients.keys());
+    }
 }
 
 module.exports = ClientManager;
