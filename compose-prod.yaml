@@ -50,7 +50,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nginx.rule=Host(`ws.trippost.online`)"
@@ -214,9 +213,9 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
       - RABBITMQ_VHOST=/
-    # Убираем публикацию порта, заменяем на expose:
-    expose:
-      - "6001"
+    # Для доступа напрямую публикуем порт
+    ports:
+      - "6001:6001"
     networks:
       - symfony_net
     depends_on:
@@ -228,7 +227,7 @@ services:
         condition: service_healthy
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 1
       restart_policy:
         condition: on-failure
       resources:
@@ -240,7 +239,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-
 
 networks:
   symfony_net:
