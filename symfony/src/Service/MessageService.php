@@ -37,6 +37,7 @@ class MessageService
             throw new BadRequestException('Invalid data');
         }
 
+        var_dump($dataDto);die;
         // Отправляем сообщение в очередь для асинхронной обработки
         $this->messageBus->dispatch(new ProcessChatMessage($dataDto));
     }
