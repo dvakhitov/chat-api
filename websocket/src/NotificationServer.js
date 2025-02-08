@@ -51,6 +51,7 @@ class NotificationServer {
             return;
         }
 
+        console.log('Received notification:', notification);
         // Отправляем уведомление в зависимости от типа
         switch (notification.constructor.name) {
             case 'SenderNotificationMessageDTO':
