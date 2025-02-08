@@ -24,7 +24,7 @@ class ChatMessageContentDTO implements ChatMessageDtoInterface
         }
     }
 
-    public string $type {
+    public string $type = 'message' {
         get => $this->type;
         set {
             $this->type = $value;
