@@ -58,7 +58,7 @@ class MessageService
         }
         $dataDto = new ChatMessageContentDTO();
         $dataDto->content = (int)$data['content'];
-        $dataDto->returnUniqId = $data['localId'];
+        $dataDto->returnUniqId = (int) $data['localId'];
         $dataDto->chatPartnerId = $data['chatPartnerId'];
         $dataDto->sender = $data['senderId'];
         $dataDto->type = $this->getMessageType($data);
