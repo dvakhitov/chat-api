@@ -36,8 +36,6 @@ services:
       - DOMAIN_NAME=${DOMAIN:-localhost}
     depends_on:
       - app
-    ports:
-      - "8000:80"    # добавлено, чтобы Nginx был доступен на порту 8000
     expose:
       - "80"
     volumes:
