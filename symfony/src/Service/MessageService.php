@@ -37,7 +37,11 @@ class MessageService
             throw new BadRequestException('Invalid data');
         }
 
-        var_dump($dataDto);die;
+        if (is_array($dataDto)) {
+
+            $this->logger->debug(sprintf('[dataDto: %s]', json_encode($dataDto)) );
+            throw new BadRequestException('Invalid data');
+        }
         // Отправляем сообщение в очередь для асинхронной обработки
         $this->messageBus->dispatch(new ProcessChatMessage($dataDto));
     }
