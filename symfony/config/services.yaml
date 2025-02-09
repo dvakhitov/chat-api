@@ -68,3 +68,9 @@ services:
             - { name: messenger.message_handler, bus: query.bus }
 
     # Если есть другие хендлеры, для которых требуется шина query.bus, укажите для них bus: query.bus
+    App\EventListener\HttpCacheListener:
+        arguments:
+            $cache: '@cache.http'
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest }
+            - { name: kernel.event_listener, event: kernel.response, method: onKernelResponse }

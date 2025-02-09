@@ -81,6 +81,7 @@ services:
       RABBITMQ_PORT: "${RABBITMQ_PORT}"
       RABBITMQ_VHOST: "${RABBITMQ_VHOST}"
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+      REDIS_URL=redis: "${REDIS_URL}"
     networks:
       - symfony_net
     healthcheck:

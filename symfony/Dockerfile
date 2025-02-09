@@ -58,19 +58,23 @@ COPY docker/entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Copy existing application directory contents
-COPY . /var/www
-
+COPY . /var/www/symfony
+COPY docker/php/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 # Create public directory if it doesn't exist
 RUN mkdir -p /var/www/symfony/public
+
+WORKDIR /var/www/symfony
 
 # Install dependencies
 RUN composer install
 
 # Change ownership of our applications
-RUN chown -R www-data:www-data /var/www
+RUN chown -R www-data:www-data /var/www/symfony
 
 # Expose port 9000
 EXPOSE 9000
 
+USER root
 # Set entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["php-fpm"]
