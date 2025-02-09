@@ -59,7 +59,7 @@ readonly class MessagesHistoryProvider implements ProviderInterface
         if (empty($messageHistoryDTO->content)) {
             return $messageHistoryDTO;
         }
-        $this->dispatcher->dispatch(new HistoryRequestedEvent($chat, $this->getChatPartnerUser($chat, $user)));
+        $this->dispatcher->dispatch(new HistoryRequestedEvent($chat));
 
         return $messageHistoryDTO;
     }

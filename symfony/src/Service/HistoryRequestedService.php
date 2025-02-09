@@ -22,19 +22,23 @@ readonly class HistoryRequestedService
     /**
      * @throws ExceptionInterface
      */
-    public function handle(Chat $chat, User $recipient): void
+    public function handle(Chat $chat): void
     {
-//        $this->messageRepository->setMessagesOfChatReadForRecipient($chat, $recipient);
-        $notificationMessage = $this
-            ->notificationMessageDTOFactory
-            ->createHistoryRequestedNotification(
-                $chat,
-                $chat->getLastMessage()->getSender()->getId()
+        foreach ($chat->getChatPartners() as $chatPartner) {
+            $notificationMessage = $this
+                ->notificationMessageDTOFactory
+                ->createHistoryRequestedNotification(
+                    $chat,
+                    $chat->getLastMessage()->getSender()->getId()
+                );
+
+            $message = new NotificationMessage(
+                $notificationMessage,
+                $chatPartner->getUser()->getId(),
             );
-        $message = new NotificationMessage(
-            $notificationMessage,
-            $chat->getLastMessage()->getRecipient()->getId()
-        );
-        $this->messageBus->dispatch($message);
+
+            $this->messageBus->dispatch($message);
+        }
+
     }
 }

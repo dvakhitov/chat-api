@@ -20,7 +20,7 @@ final readonly class HistoryRequestedEventListener
     {
         try {
             //в будущем нужно будет обрабатывать в очереди.
-            $this->historyRequestedService->handle($event->getChat(), $event->getRecipient());
+            $this->historyRequestedService->handle($event->getChat());
         } catch (\Throwable $exception) {
             $this->logger->error(
                 sprintf(

@@ -9,18 +9,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 class HistoryRequestedEvent extends Event
 {
     public function __construct(
-        private Chat $chat,
-        private User $recipient
+        private Chat $chat
     ) {
     }
 
     public function getChat(): Chat
     {
         return $this->chat;
-    }
-
-    public function getRecipient(): User
-    {
-        return $this->recipient;
     }
 }
