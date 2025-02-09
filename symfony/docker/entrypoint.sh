@@ -13,7 +13,9 @@ chown -R www-data:www-data /var/www/symfony/var
 
 
 # Start supervisor in foreground
-#exec /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf
+echo "starting supervisor"
+sleep 5
+/usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf &
 
 # Start PHP-FPM
 exec php-fpm

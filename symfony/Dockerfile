@@ -37,13 +37,13 @@ WORKDIR /var/www
 
 # Copy supervisor configuration
 COPY docker/supervisor/messenger-worker.conf /etc/supervisor/conf.d/
-COPY docker/supervisor/supervisord.conf /etc/supervisor/
+COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d
 COPY docker/supervisor/php-fpm.conf /etc/supervisor/conf.d/
 COPY docker/php/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 # Set correct permissions
-RUN chmod 644 /etc/supervisor/supervisord.conf \
+RUN chmod 644 /etc/supervisor/conf.d/supervisord.conf \
     && chmod 644 /etc/supervisor/conf.d/messenger-worker.conf \
     && chmod 644 /etc/supervisor/conf.d/php-fpm.conf \
     && chmod 644 /usr/local/etc/php-fpm.d/www.conf
