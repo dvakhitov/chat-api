@@ -54,8 +54,8 @@ RUN mkdir -p /var/log/supervisor \
     && chmod 777 /var/run
 
 # Copy entrypoint script
-COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY docker/entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Copy existing application directory contents
 COPY . /var/www
@@ -73,4 +73,4 @@ RUN chown -R www-data:www-data /var/www
 EXPOSE 9000
 
 # Set entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
