@@ -40,6 +40,9 @@ readonly class WebSocketService
             $content = $response->getContent(false); // Не выбрасывает исключение для статусов 400 и выше
 
             if (200 !== $statusCode) {
+                if (404 === $statusCode) {
+                    return;
+                }
                 $this->logger->error(
                     'WebSocketError: Response is not OK. Status code: {statusCode}. Content: {content}',
                     [

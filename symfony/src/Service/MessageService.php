@@ -38,7 +38,6 @@ class MessageService
         }
 
         if (is_array($dataDto)) {
-
             $this->logger->debug(sprintf('[dataDto: %s]', json_encode($dataDto)) );
             throw new BadRequestException('Invalid data');
         }
