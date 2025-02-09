@@ -57,7 +57,7 @@ class MessageService
             $this->logger->debug(sprintf('[localId: is string] = %s', $data['localId']) );
         }
         $dataDto = new ChatMessageContentDTO();
-        $dataDto->content = (int)$data['content'];
+        $dataDto->content = $data['content'];
         $dataDto->returnUniqId = (int) $data['localId'];
         $dataDto->chatPartnerId = $data['chatPartnerId'];
         $dataDto->sender = $data['senderId'];

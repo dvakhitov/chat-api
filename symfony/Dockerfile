@@ -37,13 +37,15 @@ WORKDIR /var/www
 
 # Copy supervisor configuration
 COPY docker/supervisor/messenger-worker.conf /etc/supervisor/conf.d/
-COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/
+COPY docker/supervisor/supervisord.conf /etc/supervisor/
+COPY docker/supervisor/php-fpm.conf /etc/supervisor/conf.d/
 COPY docker/php/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 # Set correct permissions
-RUN chmod 644 /etc/supervisor/conf.d/supervisord.conf \
+RUN chmod 644 /etc/supervisor/supervisord.conf \
     && chmod 644 /etc/supervisor/conf.d/messenger-worker.conf \
+    && chmod 644 /etc/supervisor/conf.d/php-fpm.conf \
     && chmod 644 /usr/local/etc/php-fpm.d/www.conf
 
 # Create necessary directories and set permissions
@@ -52,8 +54,8 @@ RUN mkdir -p /var/log/supervisor \
     && chmod 777 /var/run
 
 # Copy entrypoint script
-COPY docker/entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Copy existing application directory contents
 COPY . /var/www
@@ -71,4 +73,4 @@ RUN chown -R www-data:www-data /var/www
 EXPOSE 9000
 
 # Set entrypoint
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]

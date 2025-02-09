@@ -39,7 +39,7 @@ services:
     expose:
       - "80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/dev.nginx.conf:/etc/nginx/dev.nginx.conf:ro
       - ./symfony:/var/www/symfony
     networks:
       - symfony_net
@@ -88,7 +88,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    command: [ "/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf" ]
+#    command: [ "/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf" ]
     depends_on:
       rabbitmq:
         condition: service_healthy

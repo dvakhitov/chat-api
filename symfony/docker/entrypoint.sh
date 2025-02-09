@@ -11,9 +11,5 @@ done
 mkdir -p /var/www/symfony/var
 chown -R www-data:www-data /var/www/symfony/var
 
-
-# Start supervisor in foreground
-exec /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf
-
-# Start PHP-FPM
-exec php-fpm 
+# Запускаем supervisord
+exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

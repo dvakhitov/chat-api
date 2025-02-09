@@ -6,7 +6,7 @@ use App\Message\ProcessChatMessage;
 use App\Service\MessageProcessor;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-#[AsMessageHandler(bus: 'command.bus')]
+#[AsMessageHandler]
 class ProcessChatMessageHandler
 {
     public function __construct(

@@ -52,3 +52,19 @@ services:
 #    App\EventListener\NotificationsSentEventListener:
 #        tags:
 #            - {name: kernel.event_listener}
+
+    # Обработчик для ProcessChatMessage – должен работать в command.bus (с транзакцией)
+    App\MessageHandler\ProcessChatMessageHandler:
+        tags:
+            - { name: messenger.message_handler, bus: command.bus }
+
+    # Другие обработчики – назначаем им шину query.bus (без middleware транзакций)
+    App\MessageHandler\ChatMessageHandler:
+        tags:
+            - { name: messenger.message_handler, bus: query.bus }
+
+    App\MessageHandler\NotificationMessageHandler:
+        tags:
+            - { name: messenger.message_handler, bus: query.bus }
+
+    # Если есть другие хендлеры, для которых требуется шина query.bus, укажите для них bus: query.bus
