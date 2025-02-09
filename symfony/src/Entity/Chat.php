@@ -18,8 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
             output: ChatHistoryDTO::class,
             provider: ChatHistoryProvider::class
         )
-    ],
-
+    ]
 )]
 #[ORM\Entity(repositoryClass: ChatRepository::class)]
 #[ORM\HasLifecycleCallbacks]

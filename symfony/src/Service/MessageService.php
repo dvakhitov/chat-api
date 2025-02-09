@@ -38,7 +38,7 @@ class MessageService
         }
 
         if (is_array($dataDto)) {
-            $this->logger->debug(sprintf('[dataDto: %s]', json_encode($dataDto)) );
+            $this->logger->debug(sprintf('[dataDto: %s]', json_encode($dataDto)));
             throw new BadRequestException('Invalid data');
         }
         // Отправляем сообщение в очередь для асинхронной обработки
@@ -52,12 +52,12 @@ class MessageService
 
     private function createContentDto(array $data): ChatMessageContentDTO
     {
-        if (is_string($data['localId'])){
-            $this->logger->debug(sprintf('[localId: is string] = %s', $data['localId']) );
+        if (is_string($data['localId'])) {
+            $this->logger->debug(sprintf('[localId: is string] = %s', $data['localId']));
         }
         $dataDto = new ChatMessageContentDTO();
         $dataDto->content = $data['content'];
-        $dataDto->returnUniqId = (int) $data['localId'];
+        $dataDto->returnUniqId = (int)$data['localId'];
         $dataDto->chatPartnerId = $data['chatPartnerId'];
         $dataDto->sender = $data['senderId'];
         $dataDto->type = $this->getMessageType($data);

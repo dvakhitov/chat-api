@@ -7,7 +7,7 @@ use App\Service\HistoryRequestedService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
-final readonly class HistoryRequestedEventListener
+final readonly class HistoryMessageRequestedEventListener
 {
     public function __construct(
         private HistoryRequestedService $historyRequestedService,

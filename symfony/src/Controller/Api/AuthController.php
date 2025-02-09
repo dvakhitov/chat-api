@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use App\Entity\Chat;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -56,8 +57,7 @@ class AuthController extends AbstractController
                 'connected' => true,
                 'email' => $user->getEmail(),
                 'userId' => $user->getId(),
-                'countNotifications' => 2, // TODO: Получать реальное количество уведомлений
-                'countChats' => 0 // TODO: Получать реальное количество чатов
+                'countChats' => $this->entityManager->getRepository(Chat::class)->getUnreadMessagesChatsCount($user),
             ]);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
