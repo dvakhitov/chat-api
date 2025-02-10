@@ -2,7 +2,8 @@
 
 namespace App\MessageHandler;
 
-use App\DTO\NotificationMessage\SenderNotificationMessageDTO;
+use App\DTO\NotificationMessage\MessageRecipientNotificationMessageDTO;
+use App\DTO\NotificationMessage\MessageSenderNotificationMessageDTO;
 use App\Event\NotificationsSentEvent;
 use App\Message\NotificationMessage;
 use App\Service\WebSocketService;
@@ -22,16 +23,17 @@ final readonly class NotificationMessageHandler
 
     public function __invoke(NotificationMessage $message)
     {
-        $this->webSocketService->send($this->objectsToArray($message->data), $message->senderId);
+        $this->webSocketService->send(
+            $this->objectsToArray($message->data),
+            $message->notificationRecipientId
+        );
 
-        if ($message->data instanceof SenderNotificationMessageDTO) {
-            $recipientId = $message->data->chatPartner->userId;
-            if (!$recipientId) {
-                $this->logger->error(
-                    sprintf('$recipientId is mandatory. %s', __METHOD__)
-                );
-            }
-            $this->sendCountChats($recipientId);
+        if ($message->data instanceof MessageRecipientNotificationMessageDTO) {
+            $this->sendCountChats(
+                $message->notificationRecipientId,
+                $message->data->lastMessage->id,
+                $message->isSystem
+            );
         }
     }
 
@@ -63,9 +65,14 @@ final readonly class NotificationMessageHandler
         }, (array)$object);
     }
 
-    private function sendCountChats(int $recipientId): void
+    private function sendCountChats(int $recipientId, int $messageId, $isSystem): void
     {
-        $event = new NotificationsSentEvent($recipientId);
+        $event = new NotificationsSentEvent(
+            recipientId: $recipientId,
+            messageId: $messageId,
+            isSystem: $isSystem
+        );
+
         $this->dispatcher->dispatch($event);
     }
 } 

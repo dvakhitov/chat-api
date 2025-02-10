@@ -40,6 +40,7 @@ class MessageRepository extends ServiceEntityRepository
             ->andWhere('m.recipient = :userId')
             ->andWhere('m.isRead = false')
             ->setParameter('chatId', $chatId)
+            ->setParameter('isRead', true)
             ->setParameter('userId', $userId)
             ->getQuery()
             ->execute();
@@ -71,5 +72,19 @@ class MessageRepository extends ServiceEntityRepository
 
         // Paginator позволяет удобно узнавать общее число элементов и т.д.
         return new Paginator($query, fetchJoinCollection: true);
+    }
+
+    public function getLastUnreadMessage(Chat $chat, int $partnerId)
+    {
+        return $this->createQueryBuilder('m')
+            ->andWhere('m.chat = :chat')
+            ->andWhere('m.isRead = false')
+            ->andWhere('m.recipient != :partnerId')
+            ->setParameter('chat', $chat)
+            ->setParameter('partnerId', $partnerId)
+            ->orderBy('m.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

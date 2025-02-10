@@ -5,36 +5,9 @@ namespace App\DTO;
 class ChatMessageContentDTO implements ChatMessageDtoInterface
 {
     use ChatPartnerId;
-
-    public ?int $recipient = null;
-    public ?string $senderName = null;
-
-    public int $returnUniqId {
-        get => $this->returnUniqId;
-
-        set {
-            $this->returnUniqId = $value;
-        }
-    }
-
-    public string $content {
-        get => $this->content;
-        set {
-            $this->content = $value;
-        }
-    }
+    use MessageContentTrait;
 
     public string $type = 'message' {
         get => $this->type;
-        set {
-            $this->type = $value;
-        }
-    }
-
-    public int $sender {
-        get => $this->sender;
-        set {
-            $this->sender = $value;
-        }
     }
 }

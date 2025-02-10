@@ -9,6 +9,7 @@ use App\Provider\MessagesHistoryProvider;
 use App\Repository\MessageRepository;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\Link;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ApiResource(
     operations: [
@@ -26,7 +27,11 @@ use ApiPlatform\Metadata\Link;
         )
     ]
 )]
-#[ORM\Entity(repositoryClass: MessageRepository::class)]
+#[
+    ORM\Entity(repositoryClass: MessageRepository::class),
+    ORM\UniqueConstraint(name: "local_id_sender", columns: ['sender_id', 'local_id']),
+    UniqueEntity(fields: ['localId', 'sender'], message: 'Message already sent')
+]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Index(
     name: "chat_recipient_idx",

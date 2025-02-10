@@ -19,15 +19,15 @@ readonly class ChatMessageHandler implements MessageHandlerInterface
     ) {
     }
 
-    public function handle(ChatMessageDtoInterface $messageData): MessageHandlerResultDTO
+    public function handle(ChatMessageDtoInterface $messageData): ?MessageHandlerResultDTO
     {
         $chat = $this->getChat($messageData);
 
         $sender = $this->getPartner($chat, $messageData->sender);
         $recipient = $this->getPartner($chat, $messageData->chatPartnerId);
 
-        if (!$sender instanceof User) {
-            throw new \RuntimeException(sprintf('User is not valid for sender.', self::class, __METHOD__));
+        if (!$sender instanceof User || !$recipient instanceof User) {
+            throw new \RuntimeException(sprintf('User is not valid for sender or recipient.', self::class, __METHOD__));
         }
 
         $message = new Message()
@@ -42,7 +42,6 @@ readonly class ChatMessageHandler implements MessageHandlerInterface
         $this->entityManager->flush();
 
         return $this->resultDtoFactory->create(
-            $messageData,
             $chat,
             $message
         );
@@ -53,7 +52,6 @@ readonly class ChatMessageHandler implements MessageHandlerInterface
         $users = $this->entityManager->getRepository(User::class)->findByIds(
             [$messageData->sender, $messageData->chatPartnerId]
         );
-
 
         if (count($users) < 2) {
             throw new \RuntimeException('User is not valid!');

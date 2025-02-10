@@ -5,6 +5,7 @@ namespace App\Factory;
 use App\DTO\MessageHandlerResultDTO;
 use App\Entity\Chat;
 use App\Entity\Message;
+use App\Factory\Notification\NotificationMessageDTOFactory;
 
 readonly class MessageHandlerResultDTOFactory
 {
@@ -13,50 +14,38 @@ readonly class MessageHandlerResultDTOFactory
     ) {
     }
 
-    public function create($messageData, $chat, Message $message): MessageHandlerResultDTO
+    public function create($chat, Message $message): MessageHandlerResultDTO
     {
         $resultDto = new MessageHandlerResultDTO();
         $resultDto->messageId = $message->getId();
         $resultDto->chatId = $chat->getId();
 
-        $resultDto->notifications = $this->createNotifications($chat, $message->getSender()->getId(), $message->getLocalId());
+        $resultDto->notifications = $this->createNotifications(
+            $chat,
+            $message,
+            $message->getLocalId()
+        );
 
         return $resultDto;
     }
 
-    private function createNotifications(Chat $chat, int $messageSenderId, int $returnUniqId): array
+    private function createNotifications(Chat $chat, Message $message, int $localId): array
     {
         $notifications = [];
+        $notifications['sender'] = $this
+            ->notificationMessageDTOFactory
+            ->createSenderNotification(
+                $chat,
+                $message->getRecipient()->getId(),
+                $localId
+            );
 
-        foreach ($chat->getChatPartners() as $chatPartner) {
-            if ($chatPartner->getUser()->getId() !== $messageSenderId) {
-                $notificationRecipient = $chatPartner;
-                /**
-                 * Тут создаём уведомление для отправителя, о том, что сообщение отправлено получателю.
-                 */
-                $notification = $this
-                    ->notificationMessageDTOFactory
-                    ->createSenderNotification(
-                        $chatPartner->getChat(),
-                        $notificationRecipient->getUser()->getId()
-                    );
-
-                $notifications[] = $notification;
-
-                continue;
-            }
-
-            /**
-             * Здесь создаем уведомление для получателя, что ему пришло сообщение.
-             */
-            $notifications[] = $this
-                ->notificationMessageDTOFactory
-                ->createRecipientNotification(
-                    $chatPartner->getChat(),
-                    $messageSenderId,
-                    $returnUniqId
-                );
-        }
+        $notifications['recipient'] = $this
+            ->notificationMessageDTOFactory
+            ->createRecipientNotification(
+                $chat,
+                $message->getSender()->getId(),
+            );
 
         return $notifications;
     }

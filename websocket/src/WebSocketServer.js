@@ -117,7 +117,8 @@ class WebSocketServer {
                 ws.send(JSON.stringify({
                         connected: true,
                         countNotifications: 2,
-                        countChats: 0
+                        countChats: 0,
+                        userId: userId
                     }
                 ));
 

@@ -4,6 +4,8 @@ namespace App\Service;
 
 use App\DTO\ChatMessageDtoInterface;
 use App\DTO\NotificationMessage\AbstractNotificationMessageDTO;
+use App\DTO\NotificationMessage\MessageRecipientNotificationMessageDTO;
+use App\DTO\NotificationMessage\MessageSenderNotificationMessageDTO;
 use App\Message\NotificationMessage;
 use App\Service\MessageHandler\ChatMessageHandler;
 use App\Service\MessageHandler\SystemMessageHandler;
@@ -41,9 +43,16 @@ class MessageProcessor
 
             $result = $handler->handle($messageData);
 
-            $partnersIds = $this->getPartnersIds($result->notifications);
+
             foreach ($result->notifications as $item) {
-                $message = new NotificationMessage($item, $this->getSenderId($partnersIds, $item));
+                if ($item instanceof MessageSenderNotificationMessageDTO) {
+                    $notificationRecipient = $item->lastMessage->senderId;
+                } elseif ($item instanceof MessageRecipientNotificationMessageDTO) {
+
+                    $notificationRecipient = $messageData->recipient;
+                }
+
+                $message = new NotificationMessage($item, $notificationRecipient,  $messageData->type === 'system');
                 $this->messageBus->dispatch($message);
             }
         } catch (\Throwable $e) {
@@ -52,20 +61,6 @@ class MessageProcessor
                 'messageData' => $messageData
             ]);
         }
-    }
-
-    /**
-     * @param AbstractNotificationMessageDTO[] $result
-     * @return array
-     */
-    private function getPartnersIds(array $result): array
-    {
-        $ids = [];
-        foreach ($result as $item) {
-            $ids[] = $item->chatPartner->userId;
-        }
-
-        return $ids;
     }
 
     private function getSenderId(array $partnersIds, AbstractNotificationMessageDTO $notification): int

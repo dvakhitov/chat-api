@@ -8,7 +8,8 @@ class NotificationMessage
 {
     public function __construct(
         public AbstractNotificationMessageDTO $data,
-        public int $senderId
+        public int $notificationRecipientId,
+        public bool $isSystem = false
     ) {
     }
 } 

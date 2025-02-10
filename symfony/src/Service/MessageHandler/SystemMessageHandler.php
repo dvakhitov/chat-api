@@ -22,7 +22,7 @@ class SystemMessageHandler implements MessageHandlerInterface
     ) {
     }
 
-    public function handle(ChatMessageDtoInterface $messageData): MessageHandlerResultDTO
+    public function handle(ChatMessageDtoInterface $messageData): ?MessageHandlerResultDTO
     {
         /** @var Message $message */
         $message = $this->messageRepository->find($messageData->id);
@@ -41,7 +41,6 @@ class SystemMessageHandler implements MessageHandlerInterface
                 );
                 $this->entityManager->commit();
                 return $this->resultDtoFactory->create(
-                    $messageData,
                     $message->getChat(),
                     $message
                 );
@@ -82,5 +81,7 @@ class SystemMessageHandler implements MessageHandlerInterface
                 );
             }
         }
+
+        return null;
     }
 } 
