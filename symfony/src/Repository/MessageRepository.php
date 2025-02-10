@@ -74,7 +74,7 @@ class MessageRepository extends ServiceEntityRepository
         return new Paginator($query, fetchJoinCollection: true);
     }
 
-    public function getLastUnreadMessage(Chat $chat, int $partnerId)
+    public function getLastUnreadMessage(Chat $chat, int $partnerId): ? Message
     {
         return $this->createQueryBuilder('m')
             ->andWhere('m.chat = :chat')
@@ -86,5 +86,18 @@ class MessageRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function countUnreadMessagesOfTheChatFoUser(Chat $chat, User $user): int
+    {
+        return $this->createQueryBuilder('m')
+            ->select('COUNT(DISTINCT m.id)')
+            ->andWhere('m.chat = :chat')
+            ->andWhere('m.isRead = false')
+            ->andWhere('m.recipient = :user OR m.sender = :user')
+            ->setParameter('chat', $chat)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }
