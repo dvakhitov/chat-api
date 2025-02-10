@@ -3,19 +3,20 @@
 namespace App\Controller\Api;
 
 use App\Entity\User;
-use App\Service\MessageService;
+use App\Message\AllMessagesProcessMessage;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api')]
 class MessageController extends AbstractController
 {
     public function __construct(
-        private readonly MessageService $messageService,
         private readonly LoggerInterface $logger,
+        private readonly MessageBusInterface $messageBus,
     ) {
     }
 
@@ -24,9 +25,13 @@ class MessageController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
+        $data = json_decode($request->getContent(), true);
+        $message = new AllMessagesProcessMessage($data, $user->getId());
+
 
         try {
-            $this->messageService->sendMessage($request, $user);
+            $this->messageBus->dispatch($message);
+//            $this->messageService->sendMessage(json_decode(, true), $user->getId());
         } catch (\Exception $e) {
             $this->logger->error('Error sending message', [
                 'exception' => $e,

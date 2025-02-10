@@ -7,13 +7,7 @@ trait MessageContentTrait
     public ?int $recipient = null;
     public ?string $senderName = null;
 
-    public int $returnUniqId {
-        get => $this->returnUniqId;
-
-        set {
-            $this->returnUniqId = $value;
-        }
-    }
+    public ?int $returnUniqId;
 
     public string $content {
         get => $this->content;
