@@ -33,8 +33,6 @@ class MessageService
     {
         $data = json_decode($request->getContent(), true);
 
-        $data['localId'] = new \DateTime('now')->getTimestamp();
-
         $data['senderId'] = $sender->getId();
         if (isset($data['content'])) {
             $dataDto = $this->createContentDto($data);
