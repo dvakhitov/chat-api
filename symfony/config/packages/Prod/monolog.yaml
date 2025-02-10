@@ -1,13 +1,6 @@
 monolog:
   handlers:
-    buffer:
-      type: buffer
-      handler: rotating
-      level: error
-      channels: ["!event", "!doctrine", "!security"]
-
-    rotating:
-      type: rotating_file
+    main:
+      type: stream
       path: "%kernel.logs_dir%/prod.log"
-      level: error
-      max_files: 3  # Храним логи за последние 3 дня
+      level: debug
