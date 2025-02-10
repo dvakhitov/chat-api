@@ -94,7 +94,7 @@ class MessageRepository extends ServiceEntityRepository
             ->select('COUNT(DISTINCT m.id)')
             ->andWhere('m.chat = :chat')
             ->andWhere('m.isRead = false')
-            ->andWhere('m.recipient = :user OR m.sender = :user')
+            ->andWhere('m.recipient = :user')
             ->setParameter('chat', $chat)
             ->setParameter('user', $user)
             ->getQuery()
