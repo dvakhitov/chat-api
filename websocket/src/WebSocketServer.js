@@ -116,9 +116,7 @@ class WebSocketServer {
                 ws.token = message.token;
                 ws.send(JSON.stringify({
                         connected: true,
-                        countNotifications: 2,
-                        countChats: 0,
-                        userId: userId
+                        countChats: userData.countChats
                     }
                 ));
 
@@ -142,7 +140,7 @@ class WebSocketServer {
             return;
         }
 
-        const response = await this.messageHandler.handleAuthenticatedMessage(
+        await this.messageHandler.handleAuthenticatedMessage(
             authenticatedClient.userId,
             ws.token,
             data,
