@@ -66,8 +66,8 @@ class MessageService
             $this->logger->debug(sprintf('[localId: is string] = %s', $data['localId']));
         }
         $message = $this->messageRepository->findOneBy([
+            'localId' => $data['localId'],
             'sender' => $data['senderId'],
-            'localId' => $data['localId']
         ]);
         $dataDto = new ChatMessageContentDTO();
         $this->fillChatMessageDto($dataDto, $data, $message);
