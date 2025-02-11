@@ -27,18 +27,40 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
         )
     ]
 )]
-#[
-    ORM\Entity(repositoryClass: MessageRepository::class),
-    ORM\UniqueConstraint(name: "local_id_sender", columns: ['sender_id', 'local_id']),
-    UniqueEntity(fields: ['localId', 'sender'], message: 'Message already sent')
-]
-#[ORM\HasLifecycleCallbacks]
-#[ORM\Index(
-    name: "chat_recipient_idx",
-    columns: ["chat_id", "recipient_id"],
+#[ORM\Entity(repositoryClass: MessageRepository::class)]
+#[ORM\Table(
+    name: 'message',
+    indexes: [
+        new ORM\Index(name: self::CHAT_RECIPIENT_IDX, columns: ['chat_id', 'recipient_id']),
+        new ORM\Index(name: self::IDX_MESSAGE_SENDER, columns: ['sender_id']),
+        new ORM\Index(name: self::IDX_MESSAGE_RECIPIENT, columns: ['recipient_id']),
+        new ORM\Index(name: self::IDX_MESSAGE_SENDER_RECIPIENT, columns: ['sender_id', 'recipient_id']),
+    ],
+    uniqueConstraints: [
+        new ORM\UniqueConstraint(name: self::UNIQUE_LOCAL_ID_SENDER, columns: ['sender_id', 'local_id'])
+    ]
 )]
+#[
+    ORM\Index(name: self::CHAT_RECIPIENT_IDX, columns: ['chat_id', 'recipient_id']),
+    ORM\Index(name: self::IDX_MESSAGE_SENDER, columns: ['sender_id']),
+    ORM\Index(name: self::IDX_MESSAGE_RECIPIENT, columns: ['recipient_id']),
+    ORM\Index(name: self::IDX_MESSAGE_SENDER_RECIPIENT, columns: ['sender_id', 'recipient_id']),
+]
+#[UniqueEntity(fields: ['localId', 'sender'], message: 'Message already sent')]
+#[ORM\HasLifecycleCallbacks]
 class Message
 {
+    // Константы для статусов
+    public const STATUS_READ = 'read';
+    public const STATUS_SENT = 'sent';
+
+    // Константы для имен индексов
+    public const CHAT_RECIPIENT_IDX = 'chat_recipient_idx';
+    public const IDX_MESSAGE_SENDER = 'idx_message_sender';
+    public const IDX_MESSAGE_RECIPIENT = 'idx_message_recipient';
+    public const IDX_MESSAGE_SENDER_RECIPIENT = 'idx_message_sender_recipient';
+    public const UNIQUE_LOCAL_ID_SENDER = 'local_id_sender';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -84,7 +106,6 @@ class Message
     public function setChat(?Chat $chat): static
     {
         $this->chat = $chat;
-
         return $this;
     }
 
@@ -96,7 +117,6 @@ class Message
     public function setSender(?User $sender): static
     {
         $this->sender = $sender;
-
         return $this;
     }
 
@@ -108,7 +128,6 @@ class Message
     public function setContent(?string $content): static
     {
         $this->content = $content;
-
         return $this;
     }
 
@@ -120,7 +139,6 @@ class Message
     public function setIsRead(bool $isRead): static
     {
         $this->isRead = $isRead;
-
         return $this;
     }
 
@@ -132,15 +150,13 @@ class Message
     public function setCreatedAt(?\DateTimeImmutable $createdAt)
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
-    public function getUpdatedAt(): \DateTime
+    public function getUpdatedAt(): ?\DateTime
     {
         return $this->updatedAt;
     }
-
 
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
@@ -163,13 +179,12 @@ class Message
     public function setLocalId(string $localId): static
     {
         $this->localId = $localId;
-
         return $this;
     }
 
     public function getStatus(): string
     {
-        return $this->isRead ? 'read' : 'sent';
+        return $this->isRead ? self::STATUS_READ : self::STATUS_SENT;
     }
 
     public function getRecipient(): ?User
@@ -180,7 +195,6 @@ class Message
     public function setRecipient(?User $recipient): self
     {
         $this->recipient = $recipient;
-
         return $this;
     }
-} 
+}
