@@ -33,6 +33,10 @@ class MessageService
     }
 
     /**
+     * @param array $data
+     * @param int $senderId
+     * @return void
+     * @throws DeadlockException
      * @throws ExceptionInterface
      */
     public function sendMessage(array $data, int $senderId)
@@ -61,8 +65,12 @@ class MessageService
         if (is_string($data['localId'])) {
             $this->logger->debug(sprintf('[localId: is string] = %s', $data['localId']));
         }
+        $message = $this->messageRepository->findOneBy([
+            'sender' => $data['senderId'],
+            'localId' => $data['localId']
+        ]);
         $dataDto = new ChatMessageContentDTO();
-        $this->fillChatMessageDto($dataDto, $data);
+        $this->fillChatMessageDto($dataDto, $data, $message);
 
         return $dataDto;
     }
@@ -88,7 +96,13 @@ class MessageService
     private function fillChatMessageDto(ChatMessageDtoInterface $dataDto, array $data, ?Message $message): void
     {
         $dataDto->content = $data['content'];
-        $dataDto->returnUniqId = $message?->getLocalId();
+        if (isset($data['localId'])) {
+            $dataDto->returnUniqId = $data['localId'];
+        } elseif ($message) {
+            $dataDto->returnUniqId = $message->getLocalId();
+        } else {
+            $dataDto->returnUniqId = null;
+        }
         $dataDto->chatPartnerId = $data['chatPartnerId'];
         $dataDto->sender = $data['senderId'];
         $dataDto->recipient = $data['chatPartnerId'];

@@ -31,7 +31,6 @@ class MessageController extends AbstractController
 
         try {
             $this->messageBus->dispatch($message);
-//            $this->messageService->sendMessage(json_decode(, true), $user->getId());
         } catch (\Exception $e) {
             $this->logger->error('Error sending message', [
                 'exception' => $e,
