@@ -13,6 +13,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\HasLifecycleCallbacks]
+#[ORM\Index(
+    name: "user_email_idx",
+    columns: ["email"],
+)]
 class User implements UserInterface
 {
     #[ORM\Id]
