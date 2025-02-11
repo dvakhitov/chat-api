@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Chat;
+use App\Entity\ChatPartner;
 use App\Factory\Notification\NotificationMessageDTOFactory;
 use App\Message\NotificationMessage;
 use App\Repository\MessageRepository;
@@ -27,16 +28,27 @@ readonly class HistoryRequestedService
                 ->notificationMessageDTOFactory
                 ->createHistoryRequestedNotification(
                     $chat,
-                    $chat->getLastMessage()->getSender()->getId()
+                    $chatPartner->getUser()->getId()
                 );
 
             $message = new NotificationMessage(
                 $notificationMessage,
-                $chatPartner->getUser()->getId(),
+                $this->getNotificationRecipient($chat, $chatPartner),
             );
 
             $this->messageBus->dispatch($message);
         }
 
+    }
+
+    private function getNotificationRecipient(Chat $chat, ChatPartner $currentChatPartner): int
+    {
+        foreach ($chat->getChatPartners() as $chatPartner) {
+            if ($chatPartner !== $currentChatPartner) {
+                return $chatPartner->getUser()->getId();
+            }
+        }
+
+        throw new \RuntimeException('Chat partner not found in chat');
     }
 }

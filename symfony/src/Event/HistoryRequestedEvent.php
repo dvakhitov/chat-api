@@ -3,7 +3,6 @@
 namespace App\Event;
 
 use App\Entity\Chat;
-use App\Entity\User;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class HistoryRequestedEvent extends Event
