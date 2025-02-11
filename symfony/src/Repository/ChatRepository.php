@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Chat;
 use App\Entity\User;
 use App\Entity\ChatPartner;
+use App\Helper\IntegersToIndex;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -17,15 +18,13 @@ class ChatRepository extends ServiceEntityRepository
 
     public function findOrCreatePrivateChat(User $user1, User $user2): Chat
     {
+        $chatIndex = IntegersToIndex::convert([$user1->getId(), $user2->getId()]);
         $qb = $this->createQueryBuilder('c')
-            ->join('c.chatPartners', 'cp1')
-            ->join('c.chatPartners', 'cp2')
-            ->where('c.type = :type')
-            ->andWhere('cp1.user = :user1')
-            ->andWhere('cp2.user = :user2')
+            ->andWhere('c.type = :type')
+            ->andWhere('c.chatIndex = :chatIndex')
             ->setParameter('type', 'private')
-            ->setParameter('user1', $user1)
-            ->setParameter('user2', $user2);
+            ->setParameter('chatIndex', $chatIndex)
+            ;
 
         $chat = $qb->getQuery()->getOneOrNullResult();
 

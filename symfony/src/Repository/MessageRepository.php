@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Chat;
 use App\Entity\Message;
 use App\Entity\User;
+use App\Helper\IntegersToIndex;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Exception\DeadlockException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -58,12 +59,11 @@ class MessageRepository extends ServiceEntityRepository
         int $page = 1,
         int $limit = 20
     ): Paginator {
-        // Создаем QueryBuilder
+        $chatIndex = IntegersToIndex::convert([$recipient->getId(), $chatPartnerId]);
         $qb = $this->createQueryBuilder('m')
-            ->where('(m.sender = :recipient AND m.recipient = :sender) OR (m.sender = :sender AND m.recipient = :recipient)')
-            ->orderBy('m.id', 'DESC')
-            ->setParameter('recipient', $recipient)
-            ->setParameter('sender', $chatPartnerId);
+            ->andWhere('m.chatIndex = :chatIndex')
+            ->setParameter('chatIndex', $chatIndex)
+            ->orderBy('m.id', 'DESC');
 
         $query = $qb->getQuery()
             // Пагинация
@@ -74,7 +74,7 @@ class MessageRepository extends ServiceEntityRepository
         return new Paginator($query, fetchJoinCollection: true);
     }
 
-    public function getLastUnreadMessage(Chat $chat, int $partnerId): ? Message
+    public function getLastUnreadMessage(Chat $chat, int $partnerId): ?Message
     {
         return $this->createQueryBuilder('m')
             ->andWhere('m.chat = :chat')

@@ -16,7 +16,7 @@ readonly class ChatHistoryProvider implements ProviderInterface
     public function __construct(
         private ChatRepository $chatRepository,
         private Security $security,
-        private ChatHistoryDtoFactory $chatHistoryDtoFactory
+        private ChatHistoryDtoFactory $chatHistoryDtoFactory,
     ) {
     }
 

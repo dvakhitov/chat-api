@@ -5,6 +5,7 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use App\DTO\Api\History\Message\MessagesHistoryDTO;
+use App\Helper\IntegersToIndex;
 use App\Provider\MessagesHistoryProvider;
 use App\Repository\MessageRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -70,11 +71,11 @@ class Message
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Chat $chat = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'messages')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'messagesSent')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $sender = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'messages')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'messagesReceived')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $recipient = null;
 
@@ -92,6 +93,9 @@ class Message
 
     #[ORM\Column(type: 'bigint', nullable: true)]
     private ?string $localId = '';
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $chatIndex = null;
 
     public function getId(): ?int
     {
@@ -161,8 +165,18 @@ class Message
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
     {
+        $this->chatIndex = $this->createChatIndex();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTime();
+    }
+
+    private function createChatIndex(): string
+    {
+        $usersIds = [];
+        $usersIds[] = $this->sender->getId();
+        $usersIds[] = $this->recipient->getId();
+
+        return IntegersToIndex::convert($usersIds);
     }
 
     #[ORM\PreUpdate]
@@ -197,4 +211,10 @@ class Message
         $this->recipient = $recipient;
         return $this;
     }
+
+    public function getChatIndex(): ?string
+    {
+        return $this->chatIndex;
+    }
+
 }

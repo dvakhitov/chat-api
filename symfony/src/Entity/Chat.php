@@ -5,6 +5,7 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use App\DTO\Api\History\Chat\ChatHistoryDTO;
+use App\Helper\IntegersToIndex;
 use App\Provider\ChatHistoryProvider;
 use App\Repository\ChatRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -51,6 +52,9 @@ class Chat
 
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $chatIndex = null;
 
     public function __construct()
     {
@@ -140,13 +144,29 @@ class Chat
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
     {
+        $this->chatIndex = $this->createChatIndex();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    private function createChatIndex(): string
+    {
+        $usersIds = [];
+        foreach ($this->chatPartners as $chatPartner) {
+            $usersIds[] = $chatPartner->getUser()->getId();
+        }
+
+        return IntegersToIndex::convert($usersIds);
     }
 
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function getChatIndex(): ?string
+    {
+        return $this->chatIndex;
     }
 }
