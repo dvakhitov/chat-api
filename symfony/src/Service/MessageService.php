@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-
 use App\DTO\ChatMessageContentDTO;
 use App\DTO\ChatMessageDtoInterface;
 use App\DTO\ChatMessageReadDTO;

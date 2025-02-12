@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Entity\ChatPartner;
 use App\Helper\IntegersToIndex;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 class ChatRepository extends ServiceEntityRepository
@@ -28,23 +29,27 @@ class ChatRepository extends ServiceEntityRepository
 
         $chat = $qb->getQuery()->getOneOrNullResult();
 
-        if (!$chat) {
-            $chat = new Chat();
-            $chat->setType('private');
+        try {
+            if (!$chat) {
+                $chat = new Chat();
+                $chat->setType('private');
 
-            $partner1 = new ChatPartner();
-            $partner1->setChat($chat);
-            $partner1->setUser($user1);
+                $partner1 = new ChatPartner();
+                $partner1->setChat($chat);
+                $partner1->setUser($user1);
 
-            $partner2 = new ChatPartner();
-            $partner2->setChat($chat);
-            $partner2->setUser($user2);
+                $partner2 = new ChatPartner();
+                $partner2->setChat($chat);
+                $partner2->setUser($user2);
 
-            $chat->setChatPartners([$partner1, $partner2]);
-            $this->getEntityManager()->persist($chat);
-            $this->getEntityManager()->persist($partner1);
-            $this->getEntityManager()->persist($partner2);
-            $this->getEntityManager()->flush();
+                $chat->setChatPartners([$partner1, $partner2]);
+                $this->getEntityManager()->persist($chat);
+                $this->getEntityManager()->persist($partner1);
+                $this->getEntityManager()->persist($partner2);
+                $this->getEntityManager()->flush();
+            }
+        } catch (NonUniqueResultException $e) {
+            return $this->findOrCreatePrivateChat($user1, $user2);
         }
 
         return $chat;
