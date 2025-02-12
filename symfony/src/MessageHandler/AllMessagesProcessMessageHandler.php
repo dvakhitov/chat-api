@@ -19,8 +19,9 @@ class AllMessagesProcessMessageHandler
     public function __invoke(AllMessagesProcessMessage $message): void
     {
         try {
-            $this->messageService->sendMessage($message->getRequestData(), $message->getUserId());
+            $this->messageService->sendMessage($message->getRequestData(), $message->getChatMessageSenderId());
         } catch (\Exception $e) {
+            dd($e);
             $this->logger->error('Error sending message', [
                 'exception' => $e,
             ]);

@@ -6,7 +6,7 @@ readonly class AllMessagesProcessMessage
 {
     public function __construct(
         private array $requestData,
-        private int $userId
+        private int $chatMessageSenderId
     ) {
     }
 
@@ -15,8 +15,8 @@ readonly class AllMessagesProcessMessage
         return $this->requestData;
     }
 
-    public function getUserId(): int
+    public function getChatMessageSenderId(): int
     {
-        return $this->userId;
+        return $this->chatMessageSenderId;
     }
 }

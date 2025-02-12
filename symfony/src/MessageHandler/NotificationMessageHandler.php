@@ -23,18 +23,23 @@ final readonly class NotificationMessageHandler
 
     public function __invoke(NotificationMessage $message)
     {
-        $this->webSocketService->send(
-            $this->objectsToArray($message->data),
-            $message->notificationRecipientId
-        );
-
-        if ($message->data instanceof MessageRecipientNotificationMessageDTO) {
-            $this->sendCountChats(
-                $message->notificationRecipientId,
-                $message->data->lastMessage->id,
-                $message->isSystem
+        try {
+            $this->webSocketService->send(
+                $this->objectsToArray($message->data),
+                $message->notificationRecipientId
             );
+
+            if ($message->data instanceof MessageRecipientNotificationMessageDTO) {
+                $this->sendCountChats(
+                    $message->notificationRecipientId,
+                    $message->data->lastMessage->id,
+                    $message->isSystem
+                );
+            }
+        } catch (\Throwable $e) {
+            dd($e);
         }
+
     }
 
     private function objectsToArray(mixed $data): array

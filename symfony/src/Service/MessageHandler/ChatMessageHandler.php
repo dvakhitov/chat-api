@@ -42,7 +42,6 @@ readonly class ChatMessageHandler implements MessageHandlerInterface
         $this->entityManager->flush();
 
         return $this->resultDtoFactory->create(
-            $chat,
             $message
         );
     }

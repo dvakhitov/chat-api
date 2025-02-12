@@ -33,23 +33,27 @@ class MessageService
     }
 
     /**
-     * @param array $data
-     * @param int $senderId
+     * @param array $sendingMessageData
+     * @param int $chatMessageSenderId
      * @return void
      * @throws DeadlockException
      * @throws ExceptionInterface
      */
-    public function sendMessage(array $data, int $senderId)
+    public function sendMessage(array $sendingMessageData, int $chatMessageSenderId)
     {
-        $sender = $this->userRepository->find($senderId);
+        $chatMessageSender = $this->userRepository->find($chatMessageSenderId);
 
-        $data['senderId'] = $sender->getId();
-        if (isset($data['content'])) {
-            $dataDto = $this->createContentDto($data);
-        } elseif (isset($data['id'])) {
-            $dataDto = $this->createReadDto($data);
-        } else {
-            throw new BadRequestException('Invalid data');
+        try {
+            $sendingMessageData['senderId'] = $chatMessageSender->getId();
+            if (isset($sendingMessageData['content'])) {
+                $dataDto = $this->createContentDto($sendingMessageData);
+            } elseif (isset($sendingMessageData['id'])) {
+                $dataDto = $this->createReadDto($sendingMessageData);
+            } else {
+                throw new BadRequestException('Invalid data');
+            }
+        } catch (\Throwable $th) {
+            dd($th, __METHOD__ . ' line:' . __LINE__);
         }
 
         if (is_array($dataDto)) {
@@ -60,17 +64,16 @@ class MessageService
         $this->messageBus->dispatch(new ProcessChatMessage($dataDto));
     }
 
-    private function createContentDto(array $data): ChatMessageContentDTO
+    private function createContentDto(array $sendingMessageData): ChatMessageContentDTO
     {
-        if (is_string($data['localId'])) {
-            $this->logger->debug(sprintf('[localId: is string] = %s', $data['localId']));
+        ;
+        if (is_string($sendingMessageData['localId'])) {
+            $this->logger->debug(sprintf('[localId: is string] = %s', $sendingMessageData['localId']));
         }
-        $message = $this->messageRepository->findOneBy([
-            'localId' => $data['localId'],
-            'sender' => $data['senderId'],
-        ]);
+
         $dataDto = new ChatMessageContentDTO();
-        $this->fillChatMessageDto($dataDto, $data, $message);
+        $this->fillChatMessageDto($dataDto, $sendingMessageData);
+
 
         return $dataDto;
     }
@@ -80,11 +83,13 @@ class MessageService
      */
     private function createReadDto(array $data): ChatMessageReadDTO
     {
+        /** @var Message $message */
+        $message = $this->messageRepository->find($data['id']);
+
         $dataDto = new ChatMessageReadDTO();
         $dataDto->id = $data['id'];
         $dataDto->chatPartnerId = $data['chatPartnerId'];
-        /** @var Message $message */
-        $message = $this->messageRepository->find($data['id']);
+
         $data['content'] = $message->getContent();
         $this->fillChatMessageDto($dataDto, $data, $message);
 
@@ -93,20 +98,24 @@ class MessageService
         return $dataDto;
     }
 
-    private function fillChatMessageDto(ChatMessageDtoInterface $dataDto, array $data, ?Message $message): void
-    {
-        $dataDto->content = $data['content'];
-        if (isset($data['localId'])) {
-            $dataDto->returnUniqId = $data['localId'];
+    private function fillChatMessageDto(
+        ChatMessageDtoInterface $dataDto,
+        array $sendingMessageData,
+        ?Message $message = null
+    ): void {
+        $dataDto->content = $sendingMessageData['content'];
+        if (isset($sendingMessageData['localId'])) {
+            $dataDto->returnUniqId = $sendingMessageData['localId'];
         } elseif ($message) {
             $dataDto->returnUniqId = $message->getLocalId();
         } else {
             $dataDto->returnUniqId = null;
         }
-        $dataDto->chatPartnerId = $data['chatPartnerId'];
-        $dataDto->sender = $data['senderId'];
-        $dataDto->recipient = $data['chatPartnerId'];
-        $dataDto->senderName = $data['senderName'] ?? 'Unknown Sender';
+
+        $dataDto->chatPartnerId = $sendingMessageData['chatPartnerId'];
+        $dataDto->sender = isset($message) ? $message->getSender()->getId() : $sendingMessageData['senderId'];
+        $dataDto->recipient = isset($message) ? $message->getRecipient()?->getId() : $sendingMessageData['chatPartnerId'];
+        $dataDto->senderName = $sendingMessageData['senderName'] ?? 'Unknown Sender';
         if ($dataDto->returnUniqId === null) {
             unset($dataDto->returnUniqId);
         }
@@ -123,8 +132,8 @@ class MessageService
                     $message->getChat()->getId(),
                 );
                 $this->entityManager->commit();
+
                 return $this->resultDtoFactory->create(
-                    $message->getChat(),
                     $message
                 );
             } catch (DeadlockException $e) {

@@ -50,7 +50,7 @@ class ChatRepository extends ServiceEntityRepository
         return $chat;
     }
 
-    public function getUnreadMessagesChatsCount(User $user): int
+    public function getUnreadMessagesChatsCount(int|User $user): int
     {
         return $this->createQueryBuilder('c')
             ->select('COUNT(DISTINCT c.id)')

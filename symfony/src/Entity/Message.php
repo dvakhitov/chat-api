@@ -97,6 +97,10 @@ class Message
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $chatIndex = null;
 
+    public function __construct()
+    {
+    }
+
     public function getId(): ?int
     {
         return $this->id;

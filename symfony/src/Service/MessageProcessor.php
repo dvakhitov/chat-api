@@ -41,14 +41,16 @@ class MessageProcessor
             /** @var MessageHandlerInterface $handler */
             $handler = $this->handlers[$type];
 
-            $result = $handler->handle($messageData);
-
+            try {
+                $result = $handler->handle($messageData);
+            } catch (\Throwable $e) {
+                dd($e);
+            }
 
             foreach ($result->notifications as $item) {
                 if ($item instanceof MessageSenderNotificationMessageDTO) {
                     $notificationRecipient = $item->lastMessage->senderId;
                 } elseif ($item instanceof MessageRecipientNotificationMessageDTO) {
-
                     $notificationRecipient = $messageData->recipient;
                 }
 

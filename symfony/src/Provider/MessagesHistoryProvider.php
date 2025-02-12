@@ -47,6 +47,9 @@ readonly class MessagesHistoryProvider implements ProviderInterface
             if (is_null($chat)) {
                 $chat = $message->getChat();
             }
+            if ($message->getSender()->getId() === $user->getId()) {
+                continue;
+            }
             $message->setIsRead(true);
         }
         $this->em->flush();

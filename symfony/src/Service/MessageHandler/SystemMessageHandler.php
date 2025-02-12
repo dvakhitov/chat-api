@@ -5,19 +5,24 @@ namespace App\Service\MessageHandler;
 use App\DTO\ChatMessageDtoInterface;
 use App\DTO\MessageHandlerResultDTO;
 use App\Entity\Message;
+use App\Factory\MessageHandlerResultDTOFactory;
 use App\Repository\MessageRepository;
 use App\Service\MessageService;
+use Doctrine\DBAL\Exception\DeadlockException;
 
-class SystemMessageHandler implements MessageHandlerInterface
+readonly class SystemMessageHandler implements MessageHandlerInterface
 {
 
     public function __construct(
         private MessageRepository $messageRepository,
-        private MessageService $messageSerivce
+        private MessageService $messageService
     ) {
     }
 
-    public function handle(ChatMessageDtoInterface $messageData): ?MessageHandlerResultDTO
+    /**
+     * @throws DeadlockException
+     */
+    public function handle(ChatMessageDtoInterface $messageData): MessageHandlerResultDTO
     {
         /** @var Message $message */
         $message = $this->messageRepository->find($messageData->id);
@@ -25,10 +30,8 @@ class SystemMessageHandler implements MessageHandlerInterface
             throw new \RuntimeException(sprintf('Message not found. s%', __METHOD__));
         }
 
-        $this->messageSerivce->setMessagesOfTheChatIsRead(
+        return $this->messageService->setMessagesOfTheChatIsRead(
             $message
         );
-
-        return null;
     }
 } 

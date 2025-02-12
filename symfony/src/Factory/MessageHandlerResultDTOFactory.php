@@ -14,14 +14,13 @@ readonly class MessageHandlerResultDTOFactory
     ) {
     }
 
-    public function create($chat, Message $message): MessageHandlerResultDTO
+    public function create(Message $message): MessageHandlerResultDTO
     {
         $resultDto = new MessageHandlerResultDTO();
         $resultDto->messageId = $message->getId();
-        $resultDto->chatId = $chat->getId();
+        $resultDto->chatId = $message->getChat()->getId();
 
         $resultDto->notifications = $this->createNotifications(
-            $chat,
             $message,
             $message->getLocalId()
         );
@@ -29,13 +28,13 @@ readonly class MessageHandlerResultDTOFactory
         return $resultDto;
     }
 
-    private function createNotifications(Chat $chat, Message $message, int $localId): array
+    private function createNotifications(Message $message, int $localId): array
     {
         $notifications = [];
         $notifications['sender'] = $this
             ->notificationMessageDTOFactory
             ->createSenderNotification(
-                $chat,
+                $message->getChat(),
                 $message->getRecipient()->getId(),
                 $localId
             );
@@ -43,7 +42,7 @@ readonly class MessageHandlerResultDTOFactory
         $notifications['recipient'] = $this
             ->notificationMessageDTOFactory
             ->createRecipientNotification(
-                $chat,
+                $message->getChat(),
                 $message->getSender()->getId(),
             );
 

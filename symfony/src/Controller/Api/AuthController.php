@@ -5,6 +5,7 @@ namespace App\Controller\Api;
 use App\Entity\Chat;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\CountUnreadChatsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +19,7 @@ class AuthController extends AbstractController
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly EntityManagerInterface $entityManager,
+        private readonly CountUnreadChatsService $countUnreadChatsService,
         private readonly JWT $jwt,
     ) {
     }
@@ -55,9 +57,8 @@ class AuthController extends AbstractController
 
             return $this->json([
                 'connected' => true,
-                'email' => $user->getEmail(),
                 'userId' => $user->getId(),
-                'countChats' => $this->entityManager->getRepository(Chat::class)->getUnreadMessagesChatsCount($user),
+                'countChats' => $this->countUnreadChatsService->countUsersUnreadChats($user),
             ]);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);

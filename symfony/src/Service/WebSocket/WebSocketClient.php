@@ -15,6 +15,7 @@ class WebSocketClient
 
     public function send(object $data, int $userId): void
     {
+        dd($data);
         $this->httpClient->request('POST', $this->wsUrl . '/send', [
             'json' => [
                 'type' => 'send',
