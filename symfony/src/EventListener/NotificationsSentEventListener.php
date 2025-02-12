@@ -25,10 +25,10 @@ final readonly class NotificationsSentEventListener
         try {
             $data = [
                 'type' => 'chat',
-                'countChats' => $this->countUnreadChatsService->countUsersUnreadChats($event->getRecipientId())
+                'countChats' => $this->countUnreadChatsService
+                    ->countUsersUnreadChats($event->getRecipientId())
             ];
 
-            dd($event->getRecipientId());
             if ($event->isSystem()) {
                 $readMessage = $this->messageRepository->find($event->getMessageId());
                 $this->webSocketService->send($data, $readMessage->getSender()->getId());

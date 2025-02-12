@@ -79,9 +79,9 @@ class MessageRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('m')
             ->andWhere('m.chat = :chat')
             ->andWhere('m.isRead = false')
-            ->andWhere('m.recipient != :partnerId')
+            ->andWhere('m.recipient != :userId')
             ->setParameter('chat', $chat)
-            ->setParameter('partnerId', $partnerId)
+            ->setParameter('userId', $partnerId)
             ->orderBy('m.id', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
@@ -99,5 +99,18 @@ class MessageRepository extends ServiceEntityRepository
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function getLastMessageOfChatByUserId(Chat $chat, int $userId)
+    {
+        return $this->createQueryBuilder('m')
+            ->andWhere('m.chat = :chat')
+            ->andWhere('m.recipient = :userId')
+            ->setParameter('chat', $chat)
+            ->setParameter('userId', $userId)
+            ->orderBy('m.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

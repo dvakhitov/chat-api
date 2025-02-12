@@ -19,6 +19,7 @@ readonly class NotificationMessageDTOFactory
     public function __construct(
         private ChatRepository $chatRepository,
         private MessageRepository $messageRepository,
+        private LastMessageDtoFactory $lastMessageDtoFactory,
     ) {
     }
 
@@ -41,7 +42,8 @@ readonly class NotificationMessageDTOFactory
         return $this->createNotification(
             HistoryRequestedNotificationMessageDTO::class,
             $chat,
-            $messageSenderId
+            $messageSenderId,
+            $chat->getChatPartnerByUserId($messageSenderId)->getId()
         );
     }
 
@@ -69,8 +71,8 @@ readonly class NotificationMessageDTOFactory
         /** @var AbstractNotificationMessageDTO $dto */
         $dto = new $className($chat, $chatPartner);
         $dto->chatPartner = $this->getChatPartner($chat, $chatPartner);
-        $dto->lastMessage = LastMessageDtoFactory::create($chat, is_null($returnUniqId));
-        $dto->numberUnreadTimeStamp = $this->getNumberUnreadTimeStamp($chat, $chatPartner);
+        $dto->lastMessage = $this->lastMessageDtoFactory->create($chat, $chatPartner);
+        $dto->numberUnreadTimeStamp = new \DateTime('now')->getTimestamp();
         $dto->numberUnreadMessages = $this->getNumberUnreadMessages($chat, $dto->chatPartner);
 
         return $dto;
@@ -96,16 +98,5 @@ readonly class NotificationMessageDTOFactory
         }
 
         return $this->chatRepository->getCountUnreadMessagesByChatPartner($actualChatPartner->getId(), $chat->getId());
-    }
-
-    private function getNumberUnreadTimeStamp(Chat $chat, int $partnerId): int
-    {
-        $message = $this->messageRepository->getLastUnreadMessage($chat, $partnerId);
-
-        if ($message instanceof Message) {
-            return $message->getCreatedAt()->getTimestamp();
-        }
-
-        return 0;
     }
 }

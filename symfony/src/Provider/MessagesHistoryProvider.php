@@ -53,6 +53,7 @@ readonly class MessagesHistoryProvider implements ProviderInterface
             $message->setIsRead(true);
         }
         $this->em->flush();
+        $this->dispatcher->dispatch(new HistoryRequestedEvent($chat, $user->getId()));
 
         $messageHistoryDTO = $this->messagesHistoryDTOFactory->create(
             $messagesPaginator->getIterator()->getArrayCopy(),
@@ -62,7 +63,6 @@ readonly class MessagesHistoryProvider implements ProviderInterface
         if (empty($messageHistoryDTO->content)) {
             return $messageHistoryDTO;
         }
-        $this->dispatcher->dispatch(new HistoryRequestedEvent($chat));
 
         return $messageHistoryDTO;
     }

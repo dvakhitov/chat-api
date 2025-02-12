@@ -108,6 +108,18 @@ class Chat
         return $this->chatPartners;
     }
 
+    public function getChatPartnerByUserId(int $userId): ?ChatPartner
+    {
+        foreach ($this->chatPartners as $chatPartner) {
+            if ($chatPartner->getUser()->getId() === $userId) {
+                return $chatPartner;
+            }
+        }
+
+        return null;
+    }
+
+
     public function setChatPartners(array $chatPartners): Chat
     {
         foreach ($chatPartners as $chatPartner) {

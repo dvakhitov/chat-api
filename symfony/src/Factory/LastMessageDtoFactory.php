@@ -4,17 +4,22 @@ namespace App\Factory;
 
 use App\DTO\NotificationMessage\LastMessageDto;
 use App\Entity\Chat;
+use App\Repository\MessageRepository;
 
 class LastMessageDtoFactory
 {
-    public static function create(Chat $chat, bool $withLocalId): LastMessageDto
+    public function __construct(private MessageRepository $messageRepository)
+    {
+    }
+
+    public function create(Chat $chat, int $userId): LastMessageDto
     {
         $message = $chat->getLastMessage();
 
         $lastMessageDto = new LastMessageDto();
         $lastMessageDto->id = $message->getId();
         $lastMessageDto->localId = $message->getLocalId();
-        if (!$withLocalId) {
+        if ($message->getSender()->getId() === $userId) {
             unset($lastMessageDto->localId);
         }
         $lastMessageDto->senderId = $message->getSender()->getId();

@@ -18,10 +18,14 @@ final readonly class HistoryMessageRequestedEventListener
     #[AsEventListener(event: HistoryRequestedEvent::class)]
     public function onNotificationsSentEventListener(HistoryRequestedEvent $event): void
     {
+
         try {
-            //в будущем нужно будет обрабатывать в очереди.
-            $this->historyRequestedService->handle($event->getChat());
+            $this->historyRequestedService->handle(
+                $event->getChat(),
+                $event->getNotificationRecipientId()
+            );
         } catch (\Throwable $exception) {
+            dd($exception);
             $this->logger->error(
                 sprintf(
                     'Error handling set isRead to messages: %s. %s',

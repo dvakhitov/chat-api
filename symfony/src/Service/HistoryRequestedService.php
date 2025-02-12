@@ -7,6 +7,7 @@ use App\Entity\ChatPartner;
 use App\Factory\Notification\NotificationMessageDTOFactory;
 use App\Message\NotificationMessage;
 use App\Repository\MessageRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -14,14 +15,17 @@ readonly class HistoryRequestedService
 {
     public function __construct(
         private NotificationMessageDTOFactory $notificationMessageDTOFactory,
-        private MessageBusInterface $messageBus
+        private MessageBusInterface $messageBus,
+        private CountUnreadChatsService $countUnreadChatsService,
+        private WebSocketService $webSocketService,
+        private LoggerInterface $logger,
     ) {
     }
 
     /**
      * @throws ExceptionInterface
      */
-    public function handle(Chat $chat): void
+    public function handle(Chat $chat, int $notificationRecipientId): void
     {
         foreach ($chat->getChatPartners() as $chatPartner) {
             $notificationMessage = $this
@@ -38,6 +42,24 @@ readonly class HistoryRequestedService
 
             $this->messageBus->dispatch($message);
         }
+
+        try {
+            $systemMessageData = [
+                'type' => 'chat',
+                'countChats' => $this->countUnreadChatsService
+                    ->countUsersUnreadChats($notificationRecipientId)
+            ];
+
+            $this->webSocketService->send(
+                $systemMessageData,
+                $chat->getChatPartnerByUserId($notificationRecipientId)->getUser()->getId()
+            );
+        } catch (\Exception $e) {
+            $this->logger->error('Error sending data to WebSocket server', [
+                'exception' => $e,
+            ]);
+        }
+
 
     }
 
