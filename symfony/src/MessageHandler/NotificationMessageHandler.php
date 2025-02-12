@@ -37,7 +37,7 @@ final readonly class NotificationMessageHandler
                 );
             }
         } catch (\Throwable $e) {
-            dd($e);
+           $this->logger->error(sprintf('Error sending data to WebSocket server: %s', $e->getMessage() ), []);
         }
 
     }

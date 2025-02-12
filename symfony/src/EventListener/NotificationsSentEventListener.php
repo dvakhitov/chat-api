@@ -37,7 +37,6 @@ final readonly class NotificationsSentEventListener
             }
             $this->webSocketService->send($data, $event->getRecipientId());
         } catch (\Exception $e) {
-            dd($e);
             $this->logger->error('Error sending data to WebSocket server', [
                 'exception' => $e,
             ]);

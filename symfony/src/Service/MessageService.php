@@ -52,7 +52,7 @@ class MessageService
                 throw new BadRequestException('Invalid data');
             }
         } catch (\Throwable $th) {
-            dd($th, __METHOD__ . ' line:' . __LINE__);
+           $this->logger->error(sprintf('Error sending message: %s', $th->getMessage() ), []);
         }
 
         if (is_array($dataDto)) {

@@ -25,7 +25,6 @@ final readonly class HistoryMessageRequestedEventListener
                 $event->getNotificationRecipientId()
             );
         } catch (\Throwable $exception) {
-            dd($exception);
             $this->logger->error(
                 sprintf(
                     'Error handling set isRead to messages: %s. %s',

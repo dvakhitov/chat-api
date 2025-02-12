@@ -58,7 +58,7 @@ class MessageController extends AbstractController
         try {
             $this->messageBus->dispatch($message);
         } catch (\Exception $e) {
-            dd($e);
+
             $this->logger->error('Error sending message', [
                 'exception' => $e,
             ]);

@@ -21,7 +21,6 @@ class AllMessagesProcessMessageHandler
         try {
             $this->messageService->sendMessage($message->getRequestData(), $message->getChatMessageSenderId());
         } catch (\Exception $e) {
-            dd($e);
             $this->logger->error('Error sending message', [
                 'exception' => $e,
             ]);
