@@ -27,8 +27,10 @@ class ChatHistoryDtoFactory
         $chatDTO = new ChatHistoryDTO();
         $chatDTO->content = [];
 
-        // 3. Наполняем DTO данными
         foreach ($chats as $chat) {
+            if ($chat->getChatPartners()->count() < 2) {
+                continue;
+            }
             $message = $chat->getLastMessage();
             $chatContentDTO = new ChatContentDTO();
 
