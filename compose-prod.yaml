@@ -58,7 +58,7 @@ services:
 
   app:
     build:
-      context: ./symfony/docker/prod
+      context: ./symfony
       dockerfile: Dockerfile
     working_dir: /var/www/symfony
     volumes:
