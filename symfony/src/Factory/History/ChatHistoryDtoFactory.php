@@ -10,11 +10,14 @@ use App\Entity\Chat;
 use App\Entity\User;
 use App\Helper\DateTimeHelper;
 use App\Repository\MessageRepository;
+use Psr\Log\LoggerInterface;
 
 class ChatHistoryDtoFactory
 {
-    public function __construct(private readonly MessageRepository $messageRepository)
-    {
+    public function __construct(
+        private readonly MessageRepository $messageRepository,
+        private readonly LoggerInterface $logger
+    ) {
     }
 
     /**
@@ -32,13 +35,16 @@ class ChatHistoryDtoFactory
                 continue;
             }
             $message = $chat->getLastMessage();
+            if (!$message) {
+                $this->logger->error(
+                    sprintf('Message not found: %s, line %s', __METHOD__, __LINE__)
+                );
+            }
             $chatContentDTO = new ChatContentDTO();
 
             // ---- chatPartner (на выбор sender или recipient) ----
             $chatPartner = $this->getChatPartner($chat, $user);
-            if (!$chatPartner) {
-                throw new \RuntimeException(sprintf('Chat partner not found: %s, %s', __METHOD__, __LINE__));
-            }
+
             $chatPartnerDTO = new ChatPartnerDTO();
             $chatPartnerDTO->id = $chatPartner->getId();
             $chatPartnerDTO->email = $chatPartner->getEmail();
