@@ -36,6 +36,9 @@ class ChatHistoryDtoFactory
 
             // ---- chatPartner (на выбор sender или recipient) ----
             $chatPartner = $this->getChatPartner($chat, $user);
+            if (!$chatPartner) {
+                throw new \RuntimeException(sprintf('Chat partner not found: %s, %s', __METHOD__, __LINE__));
+            }
             $chatPartnerDTO = new ChatPartnerDTO();
             $chatPartnerDTO->id = $chatPartner->getId();
             $chatPartnerDTO->email = $chatPartner->getEmail();
