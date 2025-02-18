@@ -15,8 +15,7 @@ use Psr\Log\LoggerInterface;
 class ChatHistoryDtoFactory
 {
     public function __construct(
-        private readonly MessageRepository $messageRepository,
-        private readonly LoggerInterface $logger
+        private readonly MessageRepository $messageRepository
     ) {
     }
 
@@ -66,6 +65,9 @@ class ChatHistoryDtoFactory
 
             // ---- lastMessage ----
             $lastMessageDTO = new LastMessageDTO();
+            if (!$message) {
+                throw new \RuntimeException(sprintf('Message not found: %s, %s', __METHOD__, __LINE__));
+            }
             $lastMessageDTO->id = $message->getId();
             $lastMessageDTO->senderId = $message?->getSender()?->getId() ?? 0;
             $lastMessageDTO->createdDate = $message->getCreatedAt() ? DateTimeHelper::formatWithTimezone(
