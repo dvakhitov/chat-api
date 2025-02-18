@@ -88,7 +88,7 @@ class ChatHistoryDtoFactory
                 ->messageRepository
                 ->getLastUnreadMessage(
                     $chat,
-                    $this->getChatPartner($chat, $user)->getId()
+                    $chatPartner->getId()
                 )?->getCreatedAt()->getTimestamp();
 
             $chatDTO->content[] = $chatContentDTO;
