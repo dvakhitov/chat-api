@@ -40,6 +40,9 @@ class ChatHistoryDtoFactory
             $message = $chat->getLastMessage();
             if (!$message) {
                 $message = $this->messageRepository->getLastMessageOfChat($chat);
+                if (!$message) {
+                    continue;
+                }
             }
             $chatContentDTO = new ChatContentDTO();
 
