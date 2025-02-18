@@ -19,7 +19,7 @@ class MessageRepository extends ServiceEntityRepository
 
     public function getLastMessageOfChat(Chat $chat): ?Message
     {
-        $this->createQueryBuilder('m')
+        return $this->createQueryBuilder('m')
             ->andWhere('m.chat = :chat')
             ->orderBy('m.createdAt', 'DESC')
             ->setMaxResults(1)
