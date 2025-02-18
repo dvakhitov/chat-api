@@ -6,10 +6,13 @@ use App\DTO\ChatMessageDtoInterface;
 use App\DTO\NotificationMessage\AbstractNotificationMessageDTO;
 use App\DTO\NotificationMessage\MessageRecipientNotificationMessageDTO;
 use App\DTO\NotificationMessage\MessageSenderNotificationMessageDTO;
+use App\Event\NotificationsSentEvent;
 use App\Message\NotificationMessage;
 use App\Service\MessageHandler\ChatMessageHandler;
 use App\Service\MessageHandler\SystemMessageHandler;
 use App\Service\MessageHandler\MessageHandlerInterface;
+use App\Service\WebSocket\WebSocketClient;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -19,7 +22,8 @@ class MessageProcessor
 
     public function __construct(
         private readonly LoggerInterface $logger,
-        private readonly MessageBusInterface $messageBus,
+        private readonly EventDispatcherInterface $dispatcher,
+        private readonly WebSocketClient $webSocketClient,
         ChatMessageHandler $chatHandler,
         SystemMessageHandler $systemMessageHandler
     ) {
@@ -56,7 +60,17 @@ class MessageProcessor
                 }
 
                 $message = new NotificationMessage($item, $notificationRecipient,  $messageData->type === 'system');
-                $this->messageBus->dispatch($message);
+
+                $this->webSocketClient->send($message->data, $message->notificationRecipientId);
+                if ($message->data instanceof MessageRecipientNotificationMessageDTO) {
+                    $event = new NotificationsSentEvent(
+                        recipientId: $message->notificationRecipientId,
+                        messageId: $message->data->lastMessage->id,
+                        isSystem: $message->isSystem
+                    );
+
+                    $this->dispatcher->dispatch($event);
+                }
             }
         } catch (\Throwable $e) {
             $this->logger->error('Error processing message: ' . $e->getMessage(), [

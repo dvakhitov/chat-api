@@ -1,0 +1,92 @@
+#0 building with "default" instance using docker driver
+
+#1 [app internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.03kB done
+#1 DONE 0.0s
+
+#2 [app internal] load metadata for docker.io/library/php:8.4-fpm
+#2 ...
+
+#3 [app internal] load metadata for docker.io/library/composer:latest
+#3 DONE 0.8s
+
+#2 [app internal] load metadata for docker.io/library/php:8.4-fpm
+#2 DONE 0.8s
+
+#4 [app internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [app] FROM docker.io/library/composer:latest@sha256:e0c9ac329256c25b0dee572df37d986570fb26bb6baaa7d0abe69b84181701e1
+#5 DONE 0.0s
+
+#6 [app stage-0  1/21] FROM docker.io/library/php:8.4-fpm@sha256:35c2d1af502cc92cf59eaf3313be0c6b767b3ac882d933c1f8ada7fe2b774669
+#6 DONE 0.0s
+
+#7 [app internal] load build context
+#7 transferring context: 393B done
+#7 DONE 0.0s
+
+#8 [app stage-0  6/21] COPY supervisor/messenger-worker.conf /etc/supervisor/conf.d/
+#8 CACHED
+
+#9 [app stage-0  4/21] COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+#9 CACHED
+
+#10 [app stage-0 17/21] COPY php/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+#10 CACHED
+
+#11 [app stage-0  5/21] WORKDIR /var/www
+#11 CACHED
+
+#12 [app stage-0  7/21] COPY supervisor/supervisord.conf /etc/supervisor/conf.d
+#12 CACHED
+
+#13 [app stage-0 10/21] COPY php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+#13 CACHED
+
+#14 [app stage-0  2/21] RUN apt-get update && apt-get install -y     git     curl     libpng-dev     libonig-dev     libxml2-dev     zip     unzip     librabbitmq-dev     libssl-dev     supervisor     libpq-dev     netcat-traditional     libicu-dev     && rm -rf /var/lib/apt/lists/*
+#14 CACHED
+
+#15 [app stage-0 18/21] RUN mkdir -p /var/www/symfony/public
+#15 CACHED
+
+#16 [app stage-0  8/21] COPY supervisor/php-fpm.conf /etc/supervisor/conf.d/
+#16 CACHED
+
+#17 [app stage-0 16/21] RUN ls -l
+#17 CACHED
+
+#18 [app stage-0 15/21] COPY .. /var/www/symfony
+#18 CACHED
+
+#19 [app stage-0  9/21] COPY php/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+#19 CACHED
+
+#20 [app stage-0 13/21] COPY entrypoint.sh /usr/local/bin/
+#20 CACHED
+
+#21 [app stage-0 14/21] RUN chmod +x /usr/local/bin/entrypoint.sh
+#21 CACHED
+
+#22 [app stage-0  3/21] RUN docker-php-ext-install     pdo_pgsql     mbstring     exif     pcntl     bcmath     intl     opcache     && pecl install amqp     && docker-php-ext-enable amqp
+#22 CACHED
+
+#23 [app stage-0 12/21] RUN mkdir -p /var/log/supervisor     && mkdir -p /var/run     && chmod 777 /var/run
+#23 CACHED
+
+#24 [app stage-0 11/21] RUN chmod 644 /etc/supervisor/conf.d/supervisord.conf     && chmod 644 /etc/supervisor/conf.d/messenger-worker.conf     && chmod 644 /etc/supervisor/conf.d/php-fpm.conf     && chmod 644 /usr/local/etc/php-fpm.d/www.conf
+#24 CACHED
+
+#25 [app stage-0 19/21] WORKDIR /var/www/symfony
+#25 CACHED
+
+#26 [app stage-0 20/21] RUN composer install
+#26 0.231 Composer could not find a composer.json file in /var/www/symfony
+#26 0.231 To initialize a project, please create a composer.json file. See https://getcomposer.org/basic-usage
+#26 ERROR: process "/bin/sh -c composer install" did not complete successfully: exit code: 1
+------
+ > [app stage-0 20/21] RUN composer install:
+0.231 Composer could not find a composer.json file in /var/www/symfony
+0.231 To initialize a project, please create a composer.json file. See https://getcomposer.org/basic-usage
+------

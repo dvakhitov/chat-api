@@ -20,19 +20,19 @@ class HttpCacheListener
     // Проверяем кэш перед обработкой запроса
     public function onKernelRequest(RequestEvent $event)
     {
-        $request = $event->getRequest();
-        if (!$this->isCacheableRequest($request)) {
-            return;
-        }
-
-        $cacheKey = $this->getCacheKey($request);
-        $cacheItem = $this->cache->getItem($cacheKey);
-
-        if ($cacheItem->isHit()) {
-            $response = new Response($cacheItem->get());
-            $response->headers->set('X-Cache', 'HIT'); // Индикатор кэшированного ответа
-            $event->setResponse($response);
-        }
+//        $request = $event->getRequest();
+//        if (!$this->isCacheableRequest($request)) {
+//            return;
+//        }
+//
+//        $cacheKey = $this->getCacheKey($request);
+//        $cacheItem = $this->cache->getItem($cacheKey);
+//
+//        if ($cacheItem->isHit()) {
+//            $response = new Response($cacheItem->get());
+//            $response->headers->set('X-Cache', 'HIT'); // Индикатор кэшированного ответа
+//            $event->setResponse($response);
+//        }
     }
 
     // Кэшируем ответ после обработки запроса

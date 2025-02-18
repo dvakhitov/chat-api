@@ -9,6 +9,7 @@ use App\Entity\ChatPartner;
 use App\Entity\Message;
 use App\Entity\User;
 use App\Factory\MessageHandlerResultDTOFactory;
+use App\Repository\MessageRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 readonly class ChatMessageHandler implements MessageHandlerInterface
@@ -16,6 +17,7 @@ readonly class ChatMessageHandler implements MessageHandlerInterface
     public function __construct(
         private EntityManagerInterface $entityManager,
         private MessageHandlerResultDTOFactory $resultDtoFactory,
+        private MessageRepository $messageRepository,
     ) {
     }
 
@@ -27,7 +29,21 @@ readonly class ChatMessageHandler implements MessageHandlerInterface
         $recipient = $this->getPartner($chat, $messageData->chatPartnerId);
 
         if (!$sender instanceof User || !$recipient instanceof User) {
-            throw new \RuntimeException(sprintf('User is not valid for sender or recipient.', self::class, __METHOD__));
+            throw new \RuntimeException(
+                sprintf(
+                    'User is not valid for sender or recipient. %s, %s',
+                    __METHOD__,
+                    __LINE__
+                )
+            );
+        }
+
+        $message = $this->messageRepository->findBy([
+            'localId' => $messageData->returnUniqId,
+            'sender' => $sender,
+        ]);
+        if ($message) {
+            throw new \RuntimeException('Message already exists!');
         }
 
         $message = new Message()
