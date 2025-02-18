@@ -7,7 +7,6 @@ use App\Entity\Message;
 use App\Entity\User;
 use App\Helper\IntegersToIndex;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\Exception\DeadlockException;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 
@@ -18,6 +17,16 @@ class MessageRepository extends ServiceEntityRepository
         parent::__construct($registry, Message::class);
     }
 
+    public function getLastMessageOfChat(Chat $chat): ?Message
+    {
+        $this->createQueryBuilder('m')
+            ->andWhere('m.chat = :chat')
+            ->orderBy('m.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->setParameter('chat', $chat)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
     public function countUnreadChatsForRecipient(int $recipientId)
     {
         return $this->createQueryBuilder('m')

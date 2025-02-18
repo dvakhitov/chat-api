@@ -21,8 +21,12 @@ class ChatHistoryDtoFactory
     }
 
     /**
-     * @param Chat[] $chats
-     * @return ChatHistoryDTO
+     * Creates a ChatHistoryDTO instance based on the provided chats and user.
+     *
+     * @param array $chats An array of chat entities.
+     * @param User $user The user for whom the chat history is being created.
+     *
+     * @return ChatHistoryDTO The created chat history DTO containing chat data.
      */
     public function create(array $chats, User $user): ChatHistoryDTO
     {
@@ -36,9 +40,7 @@ class ChatHistoryDtoFactory
             }
             $message = $chat->getLastMessage();
             if (!$message) {
-                $this->logger->error(
-                    sprintf('Message not found: %s, line %s', __METHOD__, __LINE__)
-                );
+                $message = $this->messageRepository->getLastMessageOfChat($chat);
             }
             $chatContentDTO = new ChatContentDTO();
 
@@ -46,7 +48,7 @@ class ChatHistoryDtoFactory
             $chatPartner = $this->getChatPartner($chat, $user);
 
             $chatPartnerDTO = new ChatPartnerDTO();
-            $chatPartnerDTO->id = $chatPartner->getId();
+            $chatPartnerDTO->id = $chatPartner?->getId();
             $chatPartnerDTO->email = $chatPartner->getEmail();
             $chatPartnerDTO->firstName = $chatPartner->getFirstName();
             $chatPartnerDTO->lastName = $chatPartner->getLastName();
@@ -65,7 +67,7 @@ class ChatHistoryDtoFactory
             // ---- lastMessage ----
             $lastMessageDTO = new LastMessageDTO();
             $lastMessageDTO->id = $message->getId();
-            $lastMessageDTO->senderId = $message->getSender()?->getId() ?? 0;
+            $lastMessageDTO->senderId = $message?->getSender()?->getId() ?? 0;
             $lastMessageDTO->createdDate = $message->getCreatedAt() ? DateTimeHelper::formatWithTimezone(
                 $message->getCreatedAt()
             ) : '';
@@ -88,7 +90,7 @@ class ChatHistoryDtoFactory
                 ->messageRepository
                 ->getLastUnreadMessage(
                     $chat,
-                    $chatPartner->getId()
+                    $chatPartner?->getId()
                 )?->getCreatedAt()->getTimestamp();
 
             $chatDTO->content[] = $chatContentDTO;
