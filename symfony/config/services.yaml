@@ -55,19 +55,6 @@ services:
         tags:
             - { name: messenger.message_handler, bus: command.bus }
 
-    # Другие обработчики – назначаем им шину query.bus (без middleware транзакций)
-    App\MessageHandler\ChatMessageHandler:
-        tags:
-            - { name: messenger.message_handler, bus: query.bus }
-
     App\MessageHandler\NotificationMessageHandler:
         tags:
             - { name: messenger.message_handler, bus: query.bus }
-
-    # Если есть другие хендлеры, для которых требуется шина query.bus, укажите для них bus: query.bus
-    App\EventListener\HttpCacheListener:
-        arguments:
-            $cache: '@cache.http'
-        tags:
-            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest }
-            - { name: kernel.event_listener, event: kernel.response, method: onKernelResponse }
