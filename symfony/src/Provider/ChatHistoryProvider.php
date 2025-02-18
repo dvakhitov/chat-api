@@ -33,6 +33,7 @@ readonly class ChatHistoryProvider implements ProviderInterface
             return $this->chatHistoryDtoFactory->create($chats, $user);
         } catch (\Throwable $exception) {
             $this->logger->error($exception->getMessage());
+            throw new $exception;
         }
 
         throw new \Exception('Runtime error. Please contact support.');
