@@ -21,7 +21,7 @@ readonly class MessagesHistoryProvider implements ProviderInterface
         private MessageRepository $messageRepository,
         private Security $security,
         private EntityManagerInterface $em,
-        private EventDispatcherInterface $dispatcher,
+        private EventDispatcherInterface $eventDispatcher,
         private MessagesHistoryDTOFactory $messagesHistoryDTOFactory,
         private LoggerInterface $logger,
     ) {
@@ -47,13 +47,9 @@ readonly class MessagesHistoryProvider implements ProviderInterface
             if (is_null($chat)) {
                 $chat = $message->getChat();
             }
-            if ($message->getSender()->getId() === $user->getId()) {
-                continue;
-            }
-            $message->setIsRead(true);
         }
-        $this->em->flush();
-        $this->dispatcher->dispatch(new HistoryRequestedEvent($chat, $user->getId()));
+
+        $this->eventDispatcher->dispatch(new HistoryRequestedEvent($chat, $user->getId()));
 
         $messageHistoryDTO = $this->messagesHistoryDTOFactory->create(
             $messagesPaginator->getIterator()->getArrayCopy(),

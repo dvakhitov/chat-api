@@ -30,7 +30,9 @@ class MessageRepository extends ServiceEntityRepository
     }
 
     /**
-     * @throws DeadlockException
+     * @param int $userId
+     * @param int $chatId
+     * @return void
      */
     public function setIsReadByUser(int $userId, int $chatId): void
     {

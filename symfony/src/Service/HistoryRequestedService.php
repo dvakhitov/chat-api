@@ -7,6 +7,7 @@ use App\Entity\ChatPartner;
 use App\Factory\Notification\NotificationMessageDTOFactory;
 use App\Message\NotificationMessage;
 use App\Repository\MessageRepository;
+use Doctrine\DBAL\Exception\DeadlockException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -19,14 +20,17 @@ readonly class HistoryRequestedService
         private CountUnreadChatsService $countUnreadChatsService,
         private WebSocketService $webSocketService,
         private LoggerInterface $logger,
+        private MessageRepository $messageRepository,
     ) {
     }
 
     /**
      * @throws ExceptionInterface
+     * @throws DeadlockException
      */
     public function handle(Chat $chat, int $notificationRecipientId): void
     {
+        $this->messageRepository->setIsReadByUser($notificationRecipientId, $chat->getId());
         foreach ($chat->getChatPartners() as $chatPartner) {
             $notificationMessage = $this
                 ->notificationMessageDTOFactory
@@ -59,8 +63,6 @@ readonly class HistoryRequestedService
                 'exception' => $e,
             ]);
         }
-
-
     }
 
     private function getNotificationRecipient(Chat $chat, ChatPartner $currentChatPartner): int
