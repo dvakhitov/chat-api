@@ -37,6 +37,9 @@ RUN echo "memory_limit = 2G" > /usr/local/etc/php/conf.d/memory-limit.ini \
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Сделаем composer глобально доступным
+RUN ln -s /usr/bin/composer /usr/local/bin/composer
+
 # Set working directory
 WORKDIR /var/www
 
@@ -71,7 +74,7 @@ RUN mkdir -p /var/www/symfony/public
 WORKDIR /var/www/symfony
 
 # Install dependencies
-RUN php -d memory_limit=-1 composer install --no-dev --optimize-autoloader
+RUN php -d memory_limit=-1 /usr/bin/composer install --no-dev --optimize-autoloader
 
 # Change ownership of our applications
 RUN chown -R www-data:www-data /var/www/symfony
