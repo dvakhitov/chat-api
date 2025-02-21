@@ -29,6 +29,11 @@ RUN docker-php-ext-install \
     && pecl install amqp \
     && docker-php-ext-enable amqp 
 
+# Настройка PHP
+RUN echo "memory_limit = 2G" > /usr/local/etc/php/conf.d/memory-limit.ini \
+    && echo "max_execution_time = 600" >> /usr/local/etc/php/conf.d/memory-limit.ini \
+    && echo "date.timezone = UTC" >> /usr/local/etc/php/conf.d/memory-limit.ini
+
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -66,7 +71,7 @@ RUN mkdir -p /var/www/symfony/public
 WORKDIR /var/www/symfony
 
 # Install dependencies
-RUN composer install
+RUN php -d memory_limit=-1 composer install --no-dev --optimize-autoloader
 
 # Change ownership of our applications
 RUN chown -R www-data:www-data /var/www/symfony

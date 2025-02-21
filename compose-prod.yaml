@@ -63,7 +63,10 @@ services:
     working_dir: /var/www/symfony
     volumes:
       - ./symfony:/var/www/symfony
-      - ./symfony/docker/php/php-fpm.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+      - type: bind
+        source: ./symfony/docker/php/php-fpm.conf
+        target: /usr/local/etc/php-fpm.d/www.conf
+        read_only: true
     expose:
       - "9000"  # Важно для PHP-FPM
     env_file:
@@ -82,6 +85,8 @@ services:
 #      RABBITMQ_VHOST: "${RABBITMQ_VHOST}"
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       REDIS_URL: "${REDIS_URL}"
+      PHP_INI_MEMORY_LIMIT: "2G"
+      PHP_INI_MAX_EXECUTION_TIME: "600"
     networks:
       - symfony_net
     healthcheck:
