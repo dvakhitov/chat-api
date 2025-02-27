@@ -45,38 +45,37 @@ class MessageProcessor
             /** @var MessageHandlerInterface $handler */
             $handler = $this->handlers[$type];
 
-            try {
-                $result = $handler->handle($messageData);
-            } catch (\Throwable $e) {
-               $this->logger->error('Error processing message: ' . $e->getMessage(), []);
-               return;
-            }
-
-            foreach ($result->notifications as $item) {
-                if ($item instanceof MessageSenderNotificationMessageDTO) {
-                    $notificationRecipient = $item->lastMessage->senderId;
-                } elseif ($item instanceof MessageRecipientNotificationMessageDTO) {
-                    $notificationRecipient = $messageData->recipient;
-                }
-
-                $message = new NotificationMessage($item, $notificationRecipient,  $messageData->type === 'system');
-
-                $this->webSocketClient->send($message->data, $message->notificationRecipientId);
-                if ($message->data instanceof MessageRecipientNotificationMessageDTO) {
-                    $event = new NotificationsSentEvent(
-                        recipientId: $message->notificationRecipientId,
-                        messageId: $message->data->lastMessage->id,
-                        isSystem: $message->isSystem
-                    );
-
-                    $this->dispatcher->dispatch($event);
-                }
-            }
+            $result = $handler->handle($messageData);
         } catch (\Throwable $e) {
             $this->logger->error('Error processing message: ' . $e->getMessage(), [
                 'exception' => $e,
                 'messageData' => $messageData
             ]);
+        }
+
+        foreach ($result->notifications as $item) {
+            if ($item instanceof MessageSenderNotificationMessageDTO) {
+                $notificationRecipient = $item->lastMessage->senderId;
+            } elseif ($item instanceof MessageRecipientNotificationMessageDTO) {
+                $notificationRecipient = $messageData->recipient;
+            }
+
+            $message = new NotificationMessage($item, $notificationRecipient,  $messageData->type === 'system');
+
+            try {
+                $this->webSocketClient->send($message->data, $message->notificationRecipientId);
+            } catch (\Exception $e) {
+                $this->logger->error(sprintf('Error sending data to WebSocket server: %s', $e->getMessage() ), []);
+            }
+            if ($message->data instanceof MessageRecipientNotificationMessageDTO) {
+                $event = new NotificationsSentEvent(
+                    recipientId: $message->notificationRecipientId,
+                    messageId: $message->data->lastMessage->id,
+                    isSystem: $message->isSystem
+                );
+
+                $this->dispatcher->dispatch($event);
+            }
         }
     }
 
