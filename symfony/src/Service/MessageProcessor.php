@@ -51,6 +51,7 @@ class MessageProcessor
                 'exception' => $e,
                 'messageData' => $messageData
             ]);
+            exit;
         }
 
         foreach ($result->notifications as $item) {
