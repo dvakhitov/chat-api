@@ -19,15 +19,19 @@ final readonly class NotificationsSentEventListener
     ) {
     }
 
+    /**
+     * @throws \JsonException
+     */
     #[AsEventListener(event: NotificationsSentEvent::class)]
     public function onNotificationsSentEventListener(NotificationsSentEvent $event): void
     {
+        $data = [
+            'type' => 'chat',
+            'countChats' => $this->countUnreadChatsService
+                ->countUsersUnreadChats($event->getRecipientId())
+        ];
+        $this->logger->info(sprintf('Sending data to WebSocket server: %s', json_encode($data, JSON_THROW_ON_ERROR)), ['data' => $data]);
         try {
-            $data = [
-                'type' => 'chat',
-                'countChats' => $this->countUnreadChatsService
-                    ->countUsersUnreadChats($event->getRecipientId())
-            ];
 
             if ($event->isSystem()) {
                 $readMessage = $this->messageRepository->find($event->getMessageId());
@@ -37,7 +41,7 @@ final readonly class NotificationsSentEventListener
             }
             $this->webSocketService->send($data, $event->getRecipientId());
         } catch (\Exception $e) {
-            $this->logger->error('Error sending data to WebSocket server', [
+            $this->logger->error(sprintf('Error sending data to WebSocket server: %s', $e->getMessage()), [
                 'exception' => $e,
             ]);
         }
