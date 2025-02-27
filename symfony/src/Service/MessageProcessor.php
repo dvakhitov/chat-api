@@ -35,23 +35,20 @@ class MessageProcessor
 
     public function process(ChatMessageDtoInterface $messageData): void
     {
+        $type = $messageData->type ?? 'unknown';
+
+        if (!isset($this->handlers[$type])) {
+            throw new \InvalidArgumentException("Handler for message type '{$type}' not found");
+        }
+
+        /** @var MessageHandlerInterface $handler */
+        $handler = $this->handlers[$type];
+
         try {
-            $type = $messageData->type ?? 'unknown';
-
-            if (!isset($this->handlers[$type])) {
-                throw new \InvalidArgumentException("Handler for message type '{$type}' not found");
-            }
-
-            /** @var MessageHandlerInterface $handler */
-            $handler = $this->handlers[$type];
-
             $result = $handler->handle($messageData);
         } catch (\Throwable $e) {
-            $this->logger->error('Error processing message: ' . $e->getMessage(), [
-                'exception' => $e,
-                'messageData' => $messageData
-            ]);
-            exit;
+            $this->logger->error('Error processing message: ' . $e->getMessage(), []);
+            return;
         }
 
         foreach ($result->notifications as $item) {
@@ -61,12 +58,15 @@ class MessageProcessor
                 $notificationRecipient = $messageData->recipient;
             }
 
-            $message = new NotificationMessage($item, $notificationRecipient,  $messageData->type === 'system');
+            $message = new NotificationMessage($item, $notificationRecipient, $messageData->type === 'system');
 
             try {
                 $this->webSocketClient->send($message->data, $message->notificationRecipientId);
-            } catch (\Exception $e) {
-                $this->logger->error(sprintf('Error sending data to WebSocket server: %s', $e->getMessage() ), []);
+            } catch (\Throwable $e) {
+                $this->logger->error('Error processing message: ' . $e->getMessage(), [
+                    'exception' => $e,
+                    'messageData' => $messageData
+                ]);
             }
             if ($message->data instanceof MessageRecipientNotificationMessageDTO) {
                 $event = new NotificationsSentEvent(
