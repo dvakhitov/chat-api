@@ -7,8 +7,13 @@ parameters:
     websocket.url: '%env(WEBSOCKET_URL)%'
     jwt_public_key: '%kernel.project_dir%/config/jwt/public.pem'
     jwt_private_key: '%kernel.project_dir%/config/jwt/private.pem'
+    jwt.private_key_path: '%kernel.project_dir%/config/jwt/private.pem'
+    jwt.public_key_path: '%kernel.project_dir%/config/jwt/public.pem'
     jwt_secret_key: '%env(JWT_SECRET_KEY)%'
+    user_cache.user_class: 'App\Entity\User'
+    user_cache.lifetime: 604800
     webSocketUrl: 'http://websocket:3001'
+    boxGoUrl: 'https://dev.trippost.online'
 
 services:
     # default configuration for services in *this* file
@@ -17,6 +22,7 @@ services:
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         bind:
             string $webSocketUrl: '%webSocketUrl%'
+            string $boxgoUri: '%boxGoUrl%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -58,3 +64,37 @@ services:
     App\MessageHandler\NotificationMessageHandler:
         tags:
             - { name: messenger.message_handler, bus: query.bus }
+
+    # Регистрируем реализацию кэша (APCu)
+    App\UserCache\Cache\UserCacheInterface:
+        alias: App\UserCache\Cache\ApcuUserCache
+
+    App\UserCache\Cache\ApcuUserCache:
+        arguments:
+            $lifetime: '%user_cache.lifetime%'
+
+    # Слушатель для автоматического сброса кэша при изменениях пользователя
+    App\UserCache\EventListener\UserCacheInvalidator:
+        arguments:
+            $userCache: '@App\UserCache\Cache\UserCacheInterface'
+        tags:
+            - { name: doctrine.event_listener, event: postUpdate }
+            - { name: doctrine.event_listener, event: postRemove }
+
+    # Кастомный UserProvider, использующий кэш
+    App\UserCache\Security\CachedUserProvider:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+            $userCache: '@App\UserCache\Cache\UserCacheInterface'
+            $userClass: '%user_cache.user_class%'
+
+    App\Security\DebugJWTAuthenticator:
+        arguments:
+            $jwtEncoder: '@lexik_jwt_authentication.encoder.lcobucci'
+            $logger: '@logger'
+
+        tags:
+            - { name: 'security.authenticator', firewall: 'api' }
+    App\Service\BoxgoAuthService:
+        arguments:
+            $boxgoUrl: '%boxGoUrl%'

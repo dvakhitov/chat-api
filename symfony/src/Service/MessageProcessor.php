@@ -47,10 +47,10 @@ class MessageProcessor
         try {
             $result = $handler->handle($messageData);
         } catch (\Throwable $e) {
+            dd($e);
             $this->logger->error('Error processing message: ' . $e->getMessage(), []);
             return;
         }
-
         foreach ($result->notifications as $item) {
             if ($item instanceof MessageSenderNotificationMessageDTO) {
                 $notificationRecipient = $item->lastMessage->senderId;

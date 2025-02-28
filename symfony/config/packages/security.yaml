@@ -6,6 +6,8 @@ security:
       entity:
         class: App\Entity\User
         property: email  # замените на поле, по которому вы идентифицируете пользователя (например, username)
+    cached_users:
+      id: App\UserCache\Security\CachedUserProvider
 
   firewalls:
     dev:
@@ -18,8 +20,11 @@ security:
 
     api:
       pattern: ^/api/(chat|messages)
+      stateless: true
+      provider: cached_users
       custom_authenticators:
-        - App\Security\JwtAuthenticator
+        - App\Security\DebugJWTAuthenticator
+      jwt: ~
 
       # activate different ways to authenticate
       # https://symfony.com/doc/current/security.html#the-firewall

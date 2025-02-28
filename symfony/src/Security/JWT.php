@@ -51,6 +51,7 @@ class JWT
             : $this->verifyHmacSignature($parts[0] . '.' . $parts[1], $signature);
 
         if (!$isValid) {
+            dd('Invalid signature', $isValid, $payload);
             throw new \InvalidArgumentException('Invalid signature');
         }
 
@@ -79,8 +80,8 @@ class JWT
 
     private function verifyHmacSignature(string $data, string $signature): bool
     {
-       
         $expected = hash_hmac('sha256', $data, $this->secretKey, true);
+
         return hash_equals($expected, $signature);
     }
 
