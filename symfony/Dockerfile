@@ -26,8 +26,12 @@ RUN docker-php-ext-install \
     bcmath \
     intl \
     opcache \
+    && pecl channel-update pecl.php.net \
     && pecl install amqp \
-    && docker-php-ext-enable amqp 
+    && docker-php-ext-enable amqp \
+    && pecl install apcu \
+    && docker-php-ext-enable apcu
+
 
 # Настройка PHP
 RUN echo "memory_limit = 2G" > /usr/local/etc/php/conf.d/memory-limit.ini \
@@ -74,7 +78,7 @@ RUN mkdir -p /var/www/symfony/public
 WORKDIR /var/www/symfony
 
 # Install dependencies
-RUN php -d memory_limit=-1 /usr/bin/composer install --no-dev --optimize-autoloader
+RUN php -d memory_limit=-1 /usr/bin/composer install
 
 # Change ownership of our applications
 RUN chown -R www-data:www-data /var/www/symfony
