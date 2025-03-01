@@ -6,8 +6,8 @@ security:
       entity:
         class: App\Entity\User
         property: email  # замените на поле, по которому вы идентифицируете пользователя (например, username)
-    cached_users:
-      id: App\UserCache\Security\CachedUserProvider
+    custom_users:
+      id: App\Security\CustomUserProvider
 
   firewalls:
     dev:
@@ -21,9 +21,7 @@ security:
     api:
       pattern: ^/api/(chat|messages)
       stateless: true
-      provider: cached_users
-      custom_authenticators:
-        - App\Security\DebugJWTAuthenticator
+      provider: custom_users
       jwt: ~
 
       # activate different ways to authenticate
@@ -35,7 +33,7 @@ security:
   # Easy way to control access for large sections of your site
   # Note: Only the *first* access control that matches will be used
   access_control:
-    - { path: ^/api/auth/validate-token, roles: PUBLIC_ACCESS }
+    - { path: ^/api/auth/validate-token, roles: IS_AUTHENTICATED_FULLY }
     - { path: ^/api/chat/*, roles: IS_AUTHENTICATED_FULLY }
     - { path: ^/api/messages, roles: IS_AUTHENTICATED_FULLY }
 

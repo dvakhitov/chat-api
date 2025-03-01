@@ -87,14 +87,6 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $userCache: '@App\UserCache\Cache\UserCacheInterface'
             $userClass: '%user_cache.user_class%'
-
-    App\Security\DebugJWTAuthenticator:
-        arguments:
-            $jwtEncoder: '@lexik_jwt_authentication.encoder.lcobucci'
-            $logger: '@logger'
-
-        tags:
-            - { name: 'security.authenticator', firewall: 'api' }
     App\Service\BoxgoAuthService:
         arguments:
             $boxgoUrl: '%boxGoUrl%'
