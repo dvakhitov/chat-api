@@ -2,9 +2,9 @@
 
 namespace App\Controller\Api;
 
-use App\Entity\Chat;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\BoxgoAuthService;
 use App\Service\CountUnreadChatsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\{Response, JsonResponse};
 use Symfony\Component\Routing\Annotation\Route;
 use App\Security\JWT;
+use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 
 #[Route('/api/auth')]
 class AuthController extends AbstractController
@@ -21,6 +22,7 @@ class AuthController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly CountUnreadChatsService $countUnreadChatsService,
         private readonly JWT $jwt,
+        private readonly BoxgoAuthService $boxgoAuthService
     ) {
     }
 
@@ -31,36 +33,31 @@ class AuthController extends AbstractController
 
         $token = $request->headers->get('Authorization');
 
-        if (!$token || !str_starts_with($token, 'Bearer ')) {
-            return $this->json(['error' => 'No token provided'], Response::HTTP_UNAUTHORIZED);
-        }
-
         $token = substr($token, 7);
 
         try {
-            $payload = $this->jwt->validate($token);
+            $payload = $this->jwt->getPayload($token);
 
             $user = $this->userRepository->find($payload['user_id']);
 
             if (!($user instanceof User)) {
-                $user = new User();
-                $user->setId($payload['user_id']);
-                $user->setEmail($payload['email']);
-                $user->setFirstName($payload['firstname'] ?? $payload['firstName'] ?? '');
-                $user->setLastName($payload['lastname'] ?? $payload['lastName'] ?? '');
-                $user->setPhotoUrl($payload['photoUrl'] ?? '');
-                $user->setRoles($payload['roles'] ?? '');
-
+                $user = $this->boxgoAuthService->getNewUser($token, $payload['user_id']);
+                if (!$user instanceof User) {
+                    throw new UserNotFoundException('User not found');
+                }
                 $this->entityManager->persist($user);
                 $this->entityManager->flush();
             }
 
-            return $this->json([
+            $data = [
                 'connected' => true,
-                'userId' => $user->getId(),
                 'countChats' => $this->countUnreadChatsService->countUsersUnreadChats($user),
-            ]);
-        } catch (\Exception $e) {
+            ];
+
+            $data['userId'] = $user->getId();
+
+            return $this->json($data);
+        } catch (UserNotFoundException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
         }
     }

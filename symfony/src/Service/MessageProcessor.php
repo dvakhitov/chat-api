@@ -14,7 +14,6 @@ use App\Service\MessageHandler\MessageHandlerInterface;
 use App\Service\WebSocket\WebSocketClient;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 class MessageProcessor
 {
@@ -47,7 +46,6 @@ class MessageProcessor
         try {
             $result = $handler->handle($messageData);
         } catch (\Throwable $e) {
-            dd($e);
             $this->logger->error('Error processing message: ' . $e->getMessage(), []);
             return;
         }

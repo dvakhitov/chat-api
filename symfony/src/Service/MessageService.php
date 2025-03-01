@@ -11,7 +11,6 @@ use App\Repository\UserRepository;
 use Doctrine\DBAL\Exception\DeadlockException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
-use Symfony\Component\Messenger\Exception\ExceptionInterface;
 
 class MessageService
 {
@@ -44,6 +43,7 @@ class MessageService
             }
         } catch (\Throwable $th) {
            $this->logger->error(sprintf('Error sending message: %s', $th->getMessage() ), []);
+            throw $th;
         }
 
         if (is_array($dataDto)) {
@@ -56,14 +56,12 @@ class MessageService
 
     private function createContentDto(array $sendingMessageData): ChatMessageContentDTO
     {
-        ;
         if (is_string($sendingMessageData['localId'])) {
             $this->logger->debug(sprintf('[localId: is string] = %s', $sendingMessageData['localId']));
         }
 
         $dataDto = new ChatMessageContentDTO();
         $this->fillChatMessageDto($dataDto, $sendingMessageData);
-
 
         return $dataDto;
     }

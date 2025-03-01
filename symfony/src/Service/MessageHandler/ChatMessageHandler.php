@@ -10,7 +10,10 @@ use App\Entity\Message;
 use App\Entity\User;
 use App\Factory\MessageHandlerResultDTOFactory;
 use App\Repository\MessageRepository;
+use App\Service\BoxgoAuthService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 readonly class ChatMessageHandler implements MessageHandlerInterface
 {
@@ -18,6 +21,8 @@ readonly class ChatMessageHandler implements MessageHandlerInterface
         private EntityManagerInterface $entityManager,
         private MessageHandlerResultDTOFactory $resultDtoFactory,
         private MessageRepository $messageRepository,
+        private RequestStack $requestStack,
+        private BoxgoAuthService $boxgoAuthService
     ) {
     }
 
@@ -25,8 +30,8 @@ readonly class ChatMessageHandler implements MessageHandlerInterface
     {
         $chat = $this->getChat($messageData);
 
-        $sender = $this->getPartner($chat, $messageData->sender);
-        $recipient = $this->getPartner($chat, $messageData->chatPartnerId);
+        $sender = $this->getSender($chat, $messageData->sender);
+        $recipient = $this->getRecipient($chat, $messageData->chatPartnerId);
 
         if (!$sender instanceof User || !$recipient instanceof User) {
             throw new \RuntimeException(
@@ -74,15 +79,50 @@ readonly class ChatMessageHandler implements MessageHandlerInterface
         return $this->entityManager->getRepository(Chat::class)->findOrCreatePrivateChat($users[0], $users[1]);
     }
 
-    private function getPartner(Chat $chat, int $userId): ?User
+    private function getSender(Chat $chat, int $senderId): ?User
     {
         /** @var ChatPartner $chatPartner */
         foreach ($chat->getChatPartners()->toArray() as $chatPartner) {
-            if ($chatPartner->getUser()->getId() === $userId) {
+            if ($chatPartner->getUser()->getId() === $senderId) {
                 return $chatPartner->getUser();
             }
         }
 
         return null;
+    }
+
+    private function getRecipient(Chat $chat, int $recipientId): ?User
+    {
+        /** @var ChatPartner $chatPartner */
+        foreach ($chat->getChatPartners()->toArray() as $chatPartner) {
+            if ($chatPartner->getUser()->getId() === $recipientId) {
+                return $chatPartner->getUser();
+            }
+        }
+
+        $user = $this->boxgoAuthService->getNewUser($this->getToken(), $recipientId);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        if ($user instanceof User) {
+            return $user;
+        }
+
+        return null;
+    }
+
+    public function getToken(): ?string
+    {
+        $request = $this->requestStack->getCurrentRequest();
+        if (!$request) {
+            return null;
+        }
+
+        $authHeader = $request->headers->get('Authorization');
+        if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+            return null;
+        }
+
+        return $matches[1];
     }
 }

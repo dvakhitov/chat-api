@@ -26,7 +26,6 @@ class DebugJWTAuthenticator extends AbstractAuthenticator
     public function __construct(
         private BoxgoAuthService $boxgoAuthService,
         private EntityManagerInterface $entityManager,
-        private UserFactory $userFactory,
         JWTEncoderInterface $jwtEncoder,
         LoggerInterface $logger,
     ) {
@@ -73,25 +72,10 @@ class DebugJWTAuthenticator extends AbstractAuthenticator
             // Здесь можно реализовать загрузку пользователя из базы или вернуть фиктивного пользователя для отладки.
             // Например:
              $user =  $this->entityManager->getRepository(User::class)->find($userIdentifier);
-
              if (!$user) {
-                $userData =  json_decode($this->boxgoAuthService->getUserData($token), true);
-                if (isset($userData['userData'])) {
-                    $userData = $userData['userData'][0];
-                }
-                if ($userData !== null) {
-                    if (isset($userData['userId'])) {
-                        $userData['id'] = $userData['userId'];
-                        try{
-
-                            $user = $this->userFactory->create($userData);
-                        }catch (\Throwable $e) {
-                            dd($e);
-                        }
-                        $this->entityManager->persist($user);
-                        $this->entityManager->flush();
-                    }
-                }
+                 $user = $this->boxgoAuthService->getNewUser($token, $userIdentifier);
+                 $this->entityManager->persist($user);
+                 $this->entityManager->flush();
              }
 
              return $user;

@@ -39,7 +39,8 @@
         "symfony/validator": "7.2.*",
         "symfony/yaml": "7.2.*",
         "symfony/twig-bundle": "7.2.*",
-        "ext-apcu": "*"
+        "ext-apcu": "*",
+      "ext-openssl": "*"
     },
     "config": {
         "allow-plugins": {

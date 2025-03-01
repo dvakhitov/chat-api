@@ -47,7 +47,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
     ORM\Index(name: self::IDX_MESSAGE_RECIPIENT, columns: ['recipient_id']),
     ORM\Index(name: self::IDX_MESSAGE_SENDER_RECIPIENT, columns: ['sender_id', 'recipient_id']),
 ]
-#[UniqueEntity(fields: ['localId', 'sender'], message: 'Message already sent')]
+#[UniqueEntity(fields: ['localId', 'sender'], message: 'Message with localId + sender already sent')]
 #[ORM\HasLifecycleCallbacks]
 class Message
 {

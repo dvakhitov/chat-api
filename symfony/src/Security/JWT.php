@@ -5,8 +5,9 @@ namespace App\Security;
 class JWT
 {
     private string $publicKey;
-    private string $privateKey;
     private string $secretKey;
+
+    private string $privateKey;
 
     public function getSecretKey(): string
     {
@@ -25,6 +26,18 @@ class JWT
         }
 
         $this->secretKey = $secretKey;
+    }
+
+    public function getPayload(string $token)
+    {
+        $parts = explode('.', $token);
+        if (count($parts) !== 3) {
+            throw new \InvalidArgumentException('Invalid token format');
+        }
+
+        $payload = json_decode($this->base64UrlDecode($parts[1]), true);
+
+        return $payload;
     }
 
     public function validate(string $token): array
@@ -51,7 +64,6 @@ class JWT
             : $this->verifyHmacSignature($parts[0] . '.' . $parts[1], $signature);
 
         if (!$isValid) {
-            dd('Invalid signature', $isValid, $payload);
             throw new \InvalidArgumentException('Invalid signature');
         }
 
