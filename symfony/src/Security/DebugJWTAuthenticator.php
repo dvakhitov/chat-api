@@ -35,7 +35,6 @@ class DebugJWTAuthenticator extends AbstractAuthenticator
 
     public function supports(Request $request): ?bool
     {
-        // Аутентификатор срабатывает, если есть заголовок Authorization с Bearer-токеном
         $authHeader = $request->headers->get('Authorization');
         return $authHeader && str_starts_with($authHeader, 'Bearer ');
     }
@@ -50,36 +49,28 @@ class DebugJWTAuthenticator extends AbstractAuthenticator
         $token = $matches[1];
 
         try {
-            // Попытка декодирования токена
             $payload = $this->jwtEncoder->decode($token);
         } catch (\Exception $e) {
-            // Логирование ошибки для отладки
             $this->logger->error('Ошибка декодирования JWT: ' . $e->getMessage(), ['exception' => $e]);
             throw new AuthenticationException('Ошибка декодирования JWT: ' . $e->getMessage());
         }
 
-        // Для отладки можно залогировать payload
         $this->logger->info('JWT payload успешно декодирован', $payload);
 
-        // Здесь предполагается, что в payload есть поле 'user_id' (или другое, например, userId)
         $userId = $payload['user_id'] ?? $payload['userId'] ?? null;
         if (!$userId) {
             throw new AuthenticationException('JWT не содержит идентификатора пользователя');
         }
 
-        // Используем UserBadge с ленивой загрузкой пользователя.
-        return new SelfValidatingPassport(new UserBadge($userId, function ($userIdentifier) use ($token) {
-            // Здесь можно реализовать загрузку пользователя из базы или вернуть фиктивного пользователя для отладки.
-            // Например:
-             $user =  $this->entityManager->getRepository(User::class)->find($userIdentifier);
+        return new SelfValidatingPassport(new UserBadge($userId, function ($userIdentifier) use ($token, $userId) {
+             $user =  $this->entityManager->getRepository(User::class)->find($userId);
              if (!$user) {
-                 $user = $this->boxgoAuthService->getNewUser($token, $userIdentifier);
+                 $user = $this->boxgoAuthService->getNewUser($token, $userId);
                  $this->entityManager->persist($user);
                  $this->entityManager->flush();
              }
 
              return $user;
-
         }));
     }
 
