@@ -78,7 +78,7 @@ RUN mkdir -p /var/www/symfony/public
 WORKDIR /var/www/symfony
 
 # Install dependencies
-RUN php -d memory_limit=-1 /usr/bin/composer install
+RUN #php -d memory_limit=-1 /usr/bin/composer install
 
 # Change ownership of our applications
 RUN chown -R www-data:www-data /var/www/symfony
