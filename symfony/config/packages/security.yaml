@@ -6,8 +6,6 @@ security:
       entity:
         class: App\Entity\User
         property: email  # замените на поле, по которому вы идентифицируете пользователя (например, username)
-    custom_users:
-      id: App\Security\CustomUserProvider
 
   firewalls:
     dev:
@@ -20,9 +18,8 @@ security:
 
     api:
       pattern: ^/api/(chat|messages)
-      stateless: true
-      provider: custom_users
-      jwt: ~
+      custom_authenticators:
+        - App\Security\JwtAuthenticator
 
       # activate different ways to authenticate
       # https://symfony.com/doc/current/security.html#the-firewall
@@ -33,7 +30,7 @@ security:
   # Easy way to control access for large sections of your site
   # Note: Only the *first* access control that matches will be used
   access_control:
-    - { path: ^/api/auth/validate-token, roles: IS_AUTHENTICATED_FULLY }
+    - { path: ^/api/auth/validate-token, roles: PUBLIC_ACCESS }
     - { path: ^/api/chat/*, roles: IS_AUTHENTICATED_FULLY }
     - { path: ^/api/messages, roles: IS_AUTHENTICATED_FULLY }
 
