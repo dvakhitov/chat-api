@@ -1,0 +1,6 @@
+cron_cron:
+  jobs:
+    messenger_failed:
+      schedule: "* * * * *"
+      command: "messenger:failed:retry --transport=failed"
+      description: "Повторная попытка отправки упавших сообщений"

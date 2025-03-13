@@ -5,11 +5,14 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.4",
+        "ext-apcu": "*",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "ext-openssl": "*",
         "ext-pdo": "*",
         "api-platform/doctrine-orm": "^4.0.17",
         "api-platform/symfony": "^4.0.17",
+        "cron/cron-bundle": "^3.1",
         "doctrine/dbal": "^3.9.4",
         "doctrine/doctrine-bundle": "^2.13.2",
         "doctrine/doctrine-migrations-bundle": "^3.4.1",
@@ -36,11 +39,9 @@
         "symfony/runtime": "7.2.*",
         "symfony/security-bundle": "7.2.*",
         "symfony/serializer": "7.2.*",
-        "symfony/validator": "7.2.*",
-        "symfony/yaml": "7.2.*",
         "symfony/twig-bundle": "7.2.*",
-        "ext-apcu": "*",
-      "ext-openssl": "*"
+        "symfony/validator": "7.2.*",
+        "symfony/yaml": "7.2.*"
     },
     "config": {
         "allow-plugins": {

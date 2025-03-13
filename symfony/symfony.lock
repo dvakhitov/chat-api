@@ -13,6 +13,9 @@
             "src/ApiResource/.gitignore"
         ]
     },
+    "cron/cron-bundle": {
+        "version": "3.1.1"
+    },
     "doctrine/doctrine-bundle": {
         "version": "2.13",
         "recipe": {

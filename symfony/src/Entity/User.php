@@ -46,9 +46,6 @@ class User implements UserInterface
     #[ORM\Column(type: 'datetimetz_immutable', nullable: true)]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column]
-    private ?\DateTimeImmutable $updatedAt = null;
-
     #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender', fetch: 'LAZY')]
     private Collection $messagesSent;
 
@@ -63,12 +60,6 @@ class User implements UserInterface
     private ?string $birthday = null;
     #[ORM\Column(nullable: true)]
     private ?bool $isEmailVerified = null;
-
-    /**
-     * @var list<string> The user roles
-     */
-    #[ORM\Column]
-    private array $roles = [];
 
     public function __construct()
     {
@@ -146,16 +137,6 @@ class User implements UserInterface
         $this->createdAt = $createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(?\DateTime $updatedAt): void
-    {
-        $this->updatedAt = $updatedAt;
-    }
-
     public function getMessagesSent(): Collection
     {
         return $this->messagesSent;
@@ -184,19 +165,6 @@ class User implements UserInterface
     public function setChatPartners(Collection $chatPartners): void
     {
         $this->chatPartners = $chatPartners;
-    }
-
-    #[ORM\PrePersist]
-    public function setCreatedAtValue(): void
-    {
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
-    }
-
-    #[ORM\PreUpdate]
-    public function setUpdatedAtValue(): void
-    {
-        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function isEmailVerified(): ?bool
@@ -235,31 +203,9 @@ class User implements UserInterface
      */
     public function getRoles(): array
     {
-        $roles = $this->roles;
         $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
-    }
-
-    /**
-     * @param list<string> $roles
-     */
-    public function setRoles(array $roles): static
-    {
-        $this->roles = $roles;
-
-        return $this;
-    }
-
-    public function addRole(string $role): static
-    {
-        if (in_array($role, $this->roles, true)) {
-            return $this;
-        }
-
-        $this->roles[] = $role;
-
-        return $this;
     }
 
     /**

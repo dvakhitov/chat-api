@@ -10,10 +10,11 @@ parameters:
     jwt.private_key_path: '%kernel.project_dir%/config/jwt/private.pem'
     jwt.public_key_path: '%kernel.project_dir%/config/jwt/public.pem'
     jwt_secret_key: '%env(JWT_SECRET_KEY)%'
+    boxgo_api_domain: '%env(BOXGO_API_DOMAIN)%'
     user_cache.user_class: 'App\Entity\User'
     user_cache.lifetime: 604800
     webSocketUrl: 'http://websocket:3001'
-    boxGoUrl: 'https://dev.trippost.online'
+    boxGoUrl:  '%env(BOXGO_API_DOMAIN)%'
 
 services:
     # default configuration for services in *this* file
@@ -90,3 +91,8 @@ services:
     App\Service\BoxgoAuthService:
         arguments:
             $boxgoUrl: '%boxGoUrl%'
+    App\Service\BoxGo\BoxGoUserService:
+        arguments:
+            $boxgoUrl: '%boxgo_api_domain%/api/users/get_auth_data'
+
+    Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface: '@lexik_jwt_authentication.jwt_manager'

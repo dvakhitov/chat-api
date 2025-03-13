@@ -32,6 +32,8 @@ RUN docker-php-ext-install \
     && pecl install apcu \
     && docker-php-ext-enable apcu
 
+RUN apt-get update && apt-get install -y cron
+
 
 # Настройка PHP
 RUN echo "memory_limit = 2G" > /usr/local/etc/php/conf.d/memory-limit.ini \
@@ -85,6 +87,7 @@ RUN chown -R www-data:www-data /var/www/symfony
 
 # Expose port 9000
 EXPOSE 9000
+RUN echo "* * * * * cd /var/www/symfony && php bin/console cron:run --quiet >> var/logs/cron.log 2>&1" | crontab -
 
 USER root
 # Set entrypoint

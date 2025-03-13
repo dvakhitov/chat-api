@@ -3,6 +3,9 @@
 namespace App\Security;
 
 use App\Repository\UserRepository;
+use App\Service\BoxGo\BoxGoUserService;
+use App\Service\UserService;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
@@ -16,16 +19,15 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class JwtAuthenticator extends AbstractAuthenticator
 {
     public function __construct(
-        private JWT $jwt,
-        private UserRepository $userRepository
+        private JWTTokenManagerInterface $jwtManager,
+        private UserRepository $userRepository,
+        private BoxGoUserService $boxGoUserService,
+        private UserService $userService
     ) {
     }
 
     /**
-     * Метод, который проверяет, «поддерживает ли» аутентификатор
-     * текущий запрос (есть ли Bearer-токен и т.д.).
-     *
-     * Вернём true, если в заголовке Authorization есть Bearer <token>.
+     * Проверяем, поддерживает ли аутентификатор данный запрос.
      */
     public function supports(Request $request): ?bool
     {
@@ -34,69 +36,48 @@ class JwtAuthenticator extends AbstractAuthenticator
     }
 
     /**
-     * Извлекаем токен, валидируем через JWT, и строим Passport.
+     * Извлекаем и валидируем токен через LexikJWTAuthenticationBundle.
      */
     public function authenticate(Request $request): Passport
     {
         $authHeader = $request->headers->get('Authorization', '');
-        // Удаляем префикс "Bearer "
         $token = substr($authHeader, 7);
 
-        try {
-            // Валидируем токен, используя ваш класс JWT
-            $payload = $this->jwt->validate($token);
-        } catch (\InvalidArgumentException $e) {
-            // Любые ошибки валидации выбрасываем как AuthenticationException
-            throw new AuthenticationException($e->getMessage());
+        // Используем метод decode() из JWTTokenManagerInterface
+        $payload = $this->jwtManager->parse($token);
+        if (!$payload) {
+            throw new AuthenticationException('Invalid JWT token');
         }
 
-        // Извлекаем username из payload
-        $username = $payload['username'] ?? null;
-        if (!$username) {
-            throw new AuthenticationException('Token is missing username');
+        $userId = $payload['user_id'] ?? null;
+        if (!$userId) {
+            throw new AuthenticationException('Token is missing user_id');
         }
 
-        // Вариант 1: просто берем User из репозитория
-        // и создаём SelfValidatingPassport.
-        // Вариант 2: используем CustomCredentials, если хотим ещё раз что-то проверить.
         return new Passport(
-            new UserBadge($username, function (string $userIdentifier) {
-                // Допустим, вы храните email или username в БД
-                return $this->userRepository->findOneBy(['email' => $userIdentifier]);
+            new UserBadge($userId, function (string $userIdentifier) use ($token) {
+                $user = $this->userRepository->findOneBy(['id' => $userIdentifier]);
+                if (!$user) {
+                    $boxgoData = $this->boxGoUserService->getBoxgoUser($token);
+                    if ($boxgoData === null) {
+                        return null;
+                    }
+                    $user = $this->userService->createUserFromBoxgoData($boxgoData);
+                }
+
+                return $user;
             }),
-            // CustomCredentials позволяет, если нужно,
-            // повторно выполнить проверку. Можно и SelfValidatingCredentials использовать.
-            new CustomCredentials(
-                function () {
-                    // Здесь дополнительная проверка не нужна, т.к.
-                    // мы уже всё проверили в JWT->validate().
-                    return true;
-                },
-                null
-            )
+            new CustomCredentials(static fn() => true, null)
         );
     }
 
-    /**
-     * Если аутентификация прошла успешно,
-     * вернуть null, чтобы запрос шёл дальше (к контроллеру).
-     */
-    public function onAuthenticationSuccess(
-        Request $request,
-        TokenInterface $token,
-        string $firewallName
-    ): ?Response {
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
+    {
         return null;
     }
 
-    /**
-     * Если аутентификация не прошла,
-     * вернём JSON с 401 ошибкой.
-     */
-    public function onAuthenticationFailure(
-        Request $request,
-        AuthenticationException $exception
-    ): ?Response {
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
+    {
         return new JsonResponse([
             'error' => 'Unauthorized',
             'message' => $exception->getMessage()
