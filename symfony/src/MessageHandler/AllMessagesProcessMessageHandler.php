@@ -24,10 +24,6 @@ class AllMessagesProcessMessageHandler
             $this->logger->error('Error sending message', [
                 'exception' => $e,
             ]);
-
-            $this->logger->error('Error sending message', [
-                'execption' => $e,
-            ]);
         }
     }
 } 

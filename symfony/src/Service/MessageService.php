@@ -32,6 +32,9 @@ class MessageService
     {
         $chatMessageSender = $this->userRepository->find($chatMessageSenderId);
 
+        if (!$chatMessageSender) {
+            throw new BadRequestException();
+        }
         try {
             $sendingMessageData['senderId'] = $chatMessageSender->getId();
             if (isset($sendingMessageData['content'])) {
