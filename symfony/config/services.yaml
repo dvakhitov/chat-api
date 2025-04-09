@@ -42,6 +42,9 @@ services:
     #         $publicKeyPath: '%jwt_public_key%'
     #         $privateKeyPath: '%jwt_private_key%'
     #         $secretKey: '%jwt_secret_key%'
+    App\Controller\Api\Chat\DeleteChatByIndexController:
+        autowire: true
+        autoconfigure: true
 
     App\Security\JWT:
         arguments:

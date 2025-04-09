@@ -3,7 +3,9 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
+use App\Controller\Api\Chat\DeleteChatByIndexController;
 use App\DTO\Api\History\Chat\ChatHistoryDTO;
 use App\Helper\IntegersToIndex;
 use App\Provider\ChatHistoryProvider;
@@ -18,7 +20,13 @@ use Doctrine\ORM\Mapping as ORM;
             uriTemplate: '/chat/allChats',
             output: ChatHistoryDTO::class,
             provider: ChatHistoryProvider::class
-        )
+        ),
+//        new Delete(
+//            uriTemplate: '/chat/{chatIndex}',
+//            controller: DeleteChatByIndexController::class,
+//            read: false,
+//            name: 'api_chat_delete_by_index'
+//        )
     ]
 )]
 #[ORM\Entity(repositoryClass: ChatRepository::class)]
@@ -34,6 +42,7 @@ class Chat
     private string $type = 'private';
 
     #[ORM\ManyToOne(targetEntity: Message::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Message $lastMessage = null;
 
     #[ORM\OneToMany(
@@ -44,7 +53,7 @@ class Chat
     ]
     private Collection $messages;
 
-    #[ORM\OneToMany(targetEntity: ChatPartner::class, mappedBy: 'chat')]
+    #[ORM\OneToMany(targetEntity: ChatPartner::class, mappedBy: 'chat', cascade: ['remove'], orphanRemoval: true)]
     private Collection $chatPartners;
 
     #[ORM\Column]
