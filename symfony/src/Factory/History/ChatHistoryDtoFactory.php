@@ -61,7 +61,7 @@ class ChatHistoryDtoFactory
 //            if (!$messageRecipient->getPhotoUrl()) {
 //                unset($chatPartnerDTO->photoUrl);
 //            }
-            unset($chatPartnerDTO->photoUrl);
+
             $chatPartnerDTO->createdDate = ($chatPartner->getCreatedAt()) ? DateTimeHelper::formatWithTimezone(
                 $chatPartner->getCreatedAt()
             ) : '';
