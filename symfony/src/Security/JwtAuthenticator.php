@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\BoxGo\BoxGoUserService;
 use App\Service\UserService;
@@ -55,8 +56,10 @@ class JwtAuthenticator extends AbstractAuthenticator
         }
 
         return new Passport(
-            new UserBadge($userId, function (string $userIdentifier) use ($token) {
-                $user = $this->userRepository->findOneBy(['id' => $userIdentifier]);
+            new UserBadge($userId, function (string $userIdentifier) use ($token, $request) {
+                $token = str_replace('Bearer ', '', $request->headers->get('Authorization'));
+                /** @var User $user */
+                $user = $this->boxGoUserService->getBoxgoUser($token);
                 if (!$user) {
                     $boxgoData = $this->boxGoUserService->getBoxgoUser($token);
                     if ($boxgoData === null) {
