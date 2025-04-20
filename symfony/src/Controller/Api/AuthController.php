@@ -21,10 +21,6 @@ use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 class AuthController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
-        private readonly EntityManagerInterface $entityManager,
-        private JWTTokenManagerInterface $jwtManager,
-        private readonly  CheckUsersSumService $checkUsersSumService,
         private readonly CountUnreadChatsService $countUnreadChatsService,
     ) {
     }
@@ -41,24 +37,8 @@ class AuthController extends AbstractController
         $token = substr($token, 7);
 
         try {
-            $payload = $this->jwtManager->parse($token);
 
-            $userData = $boxGoUserService->getBoxgoUser($token);
-
-            if (!isset($userData['id'])) {
-                throw new \RuntimeException('User not found', Response::HTTP_NOT_FOUND);
-            }
-
-            $user =  $this->userRepository->find($userData['id']);
-            if (!$user) {
-                $user = $this->createUser($userData);
-            } else {
-                if (!$this->checkUsersSumService->check($user, $userData)) {
-                    $this->setUsersProperties($user, $userData);
-                }
-            }
-
-            $this->entityManager->flush();
+            $user = $boxGoUserService->getBoxgoUser($token);
 
             $data = [
                 'connected' => true,
@@ -71,31 +51,5 @@ class AuthController extends AbstractController
         } catch (UserNotFoundException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
         }
-    }
-
-    private function createUser(array $userData): User
-    {
-        $user = new User();
-
-        $this->setUsersProperties($user, $userData);
-
-        $this->entityManager->persist($user);
-
-        return $user;
-    }
-
-    private function setUsersProperties(User $user, array $userData): void
-    {
-        $createdDate = new \DateTimeImmutable($userData['createdDate']);
-
-        $user->setId($userData['id']);
-        $user->setEmail($userData['email'] ?? '');
-        $user->setFirstName($userData['firstName'] ?? null);
-        $user->setLastName($userData['lastName'] ?? null);
-        $user->setBirthday($userData['birthday'] ?? null);
-        $user->setCreatedAt($createdDate);
-        $user->setPhotoUrl($userData['photoUrl'] ?? null);
-        $user->setIsPremium($userData['isPremium'] ?? false);
-        $user->setIsEmailVerified($userData['isEmailVerified'] ?? false);
     }
 }
