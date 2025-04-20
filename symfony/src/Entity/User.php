@@ -41,6 +41,7 @@ class User implements UserInterface
     private bool $isPremium = false;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['websocket'])]
     private ?string $photoUrl = null;
 
     #[ORM\Column(type: 'datetimetz_immutable', nullable: true)]
