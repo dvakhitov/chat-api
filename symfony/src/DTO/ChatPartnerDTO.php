@@ -17,6 +17,9 @@ class ChatPartnerDTO
     public string $email;
 
     #[Groups(['websocket'])]
+    public string $photoUrl;
+
+    #[Groups(['websocket'])]
     public ?string $firstName;
 
     #[Groups(['websocket'])]
@@ -31,7 +34,6 @@ class ChatPartnerDTO
             else {
                 $this->createdDate = $createdDate;
             }
-
         }
     }
 

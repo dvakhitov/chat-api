@@ -14,8 +14,11 @@ class ChatPartnerDTOFactory
         $dto->userId = $chatPartner->getUser()->getId();
         $dto->email = $chatPartner->getUser()->getEmail();
         $dto->firstName = $chatPartner->getUser()->getFirstName();
+        if ($chatPartner->getUser()->getPhotoUrl() !== null) {
+            $dto->photoUrl = $chatPartner->getUser()->getPhotoUrl();
+        }
         $dto->lastName = $chatPartner->getUser()->getLastName();
-        $dto->emailVerified = $chatPartner->getUser()->getIsEmailVerified()?:false;
+        $dto->emailVerified = $chatPartner->getUser()->getIsEmailVerified() ?: false;
         $dto->createdDate = $chatPartner->getUser()->getCreatedAt();
 
         return $dto;
