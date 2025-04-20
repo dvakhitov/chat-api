@@ -4,7 +4,6 @@ namespace App\Controller\Api;
 
 use App\Entity\User;
 use App\Message\AllMessagesProcessMessage;
-use App\Service\BoxGo\BoxGoUserService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,12 +21,10 @@ class MessageController extends AbstractController
     }
 
     #[Route('/messages', name: 'api_messages_create', methods: ['POST'])]
-    public function sendChatMessage(Request $request, BoxGoUserService $boxGoUserService): Response
+    public function sendChatMessage(Request $request): Response
     {
-        //todo: сейчас пользователь фактически берется из boxgoApi. В будущем будет тормозить. Нужно придумать лучше вариант.
-        $token = str_replace('Bearer ', '', $request->headers->get('Authorization'));
         /** @var User $user */
-        $user = $boxGoUserService->getBoxgoUser($token);
+        $user = $this->getUser();
         $chatMessageData = json_decode($request->getContent(), true);
 
         if ($chatMessageData['chatPartnerId'] === $user->getId()) {
@@ -51,7 +48,7 @@ class MessageController extends AbstractController
 
         $this->logger->info('Message received', [
             'data' => $chatMessageData,
-            'user' => $user,
+            'user' => $user->getId(),
             'ip' => $request->getClientIp(),
             'user-agent' => $request->headers->get('User-Agent') ?? ''
         ]);
@@ -61,6 +58,7 @@ class MessageController extends AbstractController
         try {
             $this->messageBus->dispatch($message);
         } catch (\Exception $e) {
+//            dd($e);
 
             $this->logger->error('Error sending message', [
                 'exception' => $e,
