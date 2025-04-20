@@ -44,6 +44,7 @@ class CheckUsersSumService
             $boxgoData['email'] ?? '',
             $boxgoData['firstName'],
             $boxgoData['lastName'],
+            $boxgoData['photoUrl'] ?? '',
             $boxgoData['birthday'] ?? '',
             $boxgoData['isEmailVerified'] ? 'false' : 'false',
             $boxgoData['createdDate'] ?? '',
