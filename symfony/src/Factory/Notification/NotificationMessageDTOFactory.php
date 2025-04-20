@@ -18,7 +18,6 @@ readonly class NotificationMessageDTOFactory
 {
     public function __construct(
         private ChatRepository $chatRepository,
-        private MessageRepository $messageRepository,
         private LastMessageDtoFactory $lastMessageDtoFactory,
     ) {
     }

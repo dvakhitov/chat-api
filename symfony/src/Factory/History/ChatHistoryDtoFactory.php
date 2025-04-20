@@ -53,6 +53,9 @@ class ChatHistoryDtoFactory
             $chatPartnerDTO->id = $chatPartner?->getId();
             $chatPartnerDTO->email = $chatPartner->getEmail();
             $chatPartnerDTO->firstName = $chatPartner->getFirstName();
+            if ($chatPartnerDTO->photoUrl !== null) {
+                $chatPartnerDTO->photoUrl = $chatPartner->getPhotoUrl();
+            }
             $chatPartnerDTO->lastName = $chatPartner->getLastName();
 //            $chatPartnerDTO->photoUrl = $messageRecipient->getPhotoUrl();
 //            if (!$messageRecipient->getPhotoUrl()) {
