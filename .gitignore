@@ -1,3 +1,5 @@
 .env
 .idea/
-secrets/
+# Ignore real secret files but keep template *.dist for developers
+secrets/*.txt
+!secrets/*.dist

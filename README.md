@@ -27,15 +27,17 @@ docker compose up -d
 
 ## Секреты (`secrets/`)
 
-Папка `secrets/` исключена из Git (`.gitignore`) и предназначена только для локальной разработки.
-Создайте файлы:
+Папка `secrets/` исключена из Git для настоящих секретов, но содержит **шаблоны** `*.dist`.
+После клонирования выполните:
 
-```text
-secrets/app_secret.txt   # случайная строка для APP_SECRET
-secrets/db_password.txt  # пароль к PostgreSQL для DB_PASSWORD
+```bash
+cp secrets/app_secret.txt.dist secrets/app_secret.txt
+cp secrets/db_password.txt.dist secrets/db_password.txt
 ```
 
-Docker Compose считывает содержимое этих файлов и передаёт значения контейнерам как переменные среды.
+и замените значения внутри на реальные.
+
+Docker Compose считывает содержимое этих файлов (`*.txt`) и передаёт значения контейнерам как переменные среды.
 
 В production вместо этой папки рекомендуется использовать Docker/Swarm secrets или переменные среды, хранимые в CI/CD (Vault, GitHub Secrets, GitLab CI Variables и т. д.).
 
