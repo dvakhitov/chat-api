@@ -1,0 +1,62 @@
+openapi: 3.1.0
+info:
+  title: Chat API
+  version: 1.0.0
+  description: REST API for chat service that works together with WebSocket server.
+servers:
+  - url: http://localhost
+paths:
+  /api/messages:
+    post:
+      summary: Send chat message
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                chatPartnerId:
+                  type: integer
+                text:
+                  type: string
+              required: [chatPartnerId, text]
+            example:
+              chatPartnerId: 42
+              text: Hello
+      responses:
+        "202":
+          description: Message accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                example:
+                  status: Message accepted
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                example:
+                  status: OK
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
