@@ -57,10 +57,10 @@ class JwtAuthenticator extends AbstractAuthenticator
 
         return new Passport(
             new UserBadge($userId, function (string $userIdentifier) use ($token, $request) {
-//todo: до добавления синхронизации $user = $this->userRepository->findOneBy(['id' => $userIdentifier]);
                 $token = str_replace('Bearer ', '', $request->headers->get('Authorization'));
-                /** @var User $user */
-                $user = $this->boxGoUserService->getBoxgoUser($token);
+                /** @var User|null $user */
+                $user = $this->userRepository->findOneBy(['id' => $userIdentifier]);
+
                 if (!$user) {
                     $boxgoData = $this->boxGoUserService->getBoxgoUser($token);
                     if ($boxgoData === null) {

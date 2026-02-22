@@ -57,8 +57,8 @@ class User implements UserInterface
     #[ORM\OneToMany(targetEntity: ChatPartner::class, mappedBy: 'user')]
     private Collection $chatPartners;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $birthday = null;
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTime $birthday = null;
     #[ORM\Column(nullable: true)]
     private ?bool $isEmailVerified = null;
 
@@ -180,17 +180,12 @@ class User implements UserInterface
         return $this;
     }
 
-    public function getIsEmailVerified(): ?bool
-    {
-        return $this->isEmailVerified;
-    }
-
-    public function getBirthday(): ?string
+    public function getBirthday(): ?\DateTime
     {
         return $this->birthday;
     }
 
-    public function setBirthday(?string $birthday): static
+    public function setBirthday(?\DateTime $birthday): static
     {
         $this->birthday = $birthday;
 

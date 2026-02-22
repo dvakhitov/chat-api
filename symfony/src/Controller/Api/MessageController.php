@@ -27,6 +27,10 @@ class MessageController extends AbstractController
         $user = $this->getUser();
         $chatMessageData = json_decode($request->getContent(), true);
 
+        if (!is_array($chatMessageData) || !isset($chatMessageData['chatPartnerId'])) {
+            return $this->json(['error' => 'Invalid request data'], Response::HTTP_BAD_REQUEST);
+        }
+
         if ($chatMessageData['chatPartnerId'] === $user->getId()) {
             /**
              * Если получатель и отправитель один и тот же, то никак не реагируем.
@@ -58,8 +62,6 @@ class MessageController extends AbstractController
         try {
             $this->messageBus->dispatch($message);
         } catch (\Exception $e) {
-//            dd($e);
-
             $this->logger->error('Error sending message', [
                 'exception' => $e,
             ]);

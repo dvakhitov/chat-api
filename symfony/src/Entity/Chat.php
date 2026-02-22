@@ -21,12 +21,6 @@ use Doctrine\ORM\Mapping as ORM;
             output: ChatHistoryDTO::class,
             provider: ChatHistoryProvider::class
         ),
-//        new Delete(
-//            uriTemplate: '/chat/{chatIndex}',
-//            controller: DeleteChatByIndexController::class,
-//            read: false,
-//            name: 'api_chat_delete_by_index'
-//        )
     ]
 )]
 #[ORM\Entity(repositoryClass: ChatRepository::class)]

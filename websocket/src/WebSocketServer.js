@@ -98,7 +98,6 @@ class WebSocketServer {
             ws.close(4002, 'No token provided');
             return;
         }
-        console.log('Token received:', message.token);
 
         try {
             const userData = await this.authService.validateToken(message.token);
